@@ -35,3 +35,10 @@ def get_prompt(prompt_id: str, db: Session = Depends(get_db)):
 @router.post("", response_model=PromptRead, status_code=status.HTTP_201_CREATED)
 def create_prompt(prompt: PromptCreate, db: Session = Depends(get_db)):
     return prompt_service.create_prompt(db, prompt)
+
+@router.post("/{prompt_id}/view", response_model=PromptRead)
+def increase_prompt_views(prompt_id: str, db: Session = Depends(get_db)):
+    prompt = prompt.increment_views(db, prompt_id)
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt not found")
+    return prompt

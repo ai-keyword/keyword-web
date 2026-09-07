@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { fillKeyword } from "@/lib/api";
+import { fillKeyword, incrementPromptView } from "@/lib/api";
 import type { Prompt } from "@/lib/types";
 import { RankBadge } from "@/components/RankBadge";
 
 type PromptCardProps = {
-    prompt: Prompt;
+    prompt: Prompt & { views?: number };
     displayKeyword?: string;
 };
 
@@ -16,10 +16,21 @@ export function PromptCard({
 }: PromptCardProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [views, setViews] = useState(prompt.views ?? 0);
     const filledContent = fillKeyword(prompt.content, displayKeyword);
     const thumbnailBackground = prompt.thumbnailUrl
         ? `linear-gradient(135deg, rgba(250,250,250,0.15), rgba(231,240,255,0.42)), url(${prompt.thumbnailUrl})`
         : "linear-gradient(135deg, #fafafa 0%, #e7f0ff 48%, #f1f5f9 100%)";
+
+    async function handleOpen() {
+        setIsOpen(true);
+        try {
+            await incrementPromptView(prompt.id);
+            setViews((prev) => prev + 1);
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     async function copyPrompt() {
         await navigator.clipboard.writeText(filledContent);
@@ -31,7 +42,7 @@ export function PromptCard({
         <>
             <button
                 type="button"
-                onClick={() => setIsOpen(true)}
+                onClick={handleOpen}
                 className="cursor-pointer group flex w-[78vw] max-w-72 shrink-0 snap-start flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md sm:w-full sm:max-w-none"
             >
                 <div
@@ -51,8 +62,8 @@ export function PromptCard({
                         {filledContent}
                     </p>
                     <div className="flex items-center justify-between gap-3 text-sm font-semibold text-zinc-500">
-                        <span>{prompt.author}</span>
-                        <span>#{prompt.keyword}</span>
+                        <span>작성자: {prompt.author}</span>
+                        <span>조회수 {views}회</span>
                     </div>
                 </div>
             </button>
@@ -93,7 +104,7 @@ export function PromptCard({
                         </p>
                         <div className="mt-5 flex items-center justify-between gap-3">
                             <span className="text-sm font-semibold text-zinc-500">
-                                작성자 {prompt.author}
+                                작성자: {prompt.author} (조회수 {views}회)
                             </span>
                             <button
                                 type="button"

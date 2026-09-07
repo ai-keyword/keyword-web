@@ -15,6 +15,7 @@ class PromptBase(BaseModel):
     description: str | None = None
     thumbnail_url: str | None = Field(default=None, alias="thumbnailUrl")
     author: str
+    views: int = 0
     created_at: datetime = Field(alias="createdAt")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)

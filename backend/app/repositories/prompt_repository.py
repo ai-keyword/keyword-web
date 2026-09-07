@@ -42,6 +42,13 @@ def list_trending_keywords(db: Session) -> list[str]:
 
     return keywords
 
+def increment_views(db: Session, prompt_id: str) -> Prompt | None:
+    prompt = get_prompt(db, prompt_id)
+    if prompt:
+        prompt.views += 1
+        db.commit()
+        db.refresh(prompt)
+    return prompt
 
 def create_prompt(db: Session, prompt: PromptCreate) -> Prompt:
     db_prompt = Prompt(
@@ -53,6 +60,7 @@ def create_prompt(db: Session, prompt: PromptCreate) -> Prompt:
         description=prompt.description,
         thumbnail_url=prompt.thumbnail_url,
         author=prompt.author,
+        views=getattr(prompt, "views", 0),  # 조회수 반영 (없으면 기본값 0)
         created_at=prompt.created_at,
     )
     db.add(db_prompt)
@@ -76,6 +84,7 @@ def seed_prompts(db: Session, prompts: list[PromptCreate]) -> None:
                 description=prompt.description,
                 thumbnail_url=prompt.thumbnail_url,
                 author=prompt.author,
+                views=getattr(prompt, "views", 0),  # 조회수 반영
                 created_at=prompt.created_at,
             )
         )

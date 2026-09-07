@@ -22,16 +22,34 @@ export default async function Home() {
     return (
         <main className="min-h-screen bg-background">
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-5 py-8 sm:px-8 lg:px-10">
-                <header className="w-full flex flex-col items-center gap-6 border-b border-zinc-200 pb-8">
-                    <div className="w-120 flex flex-col gap-4">
-                        <img
-                            src={logo.src}
-                            alt="PromptHub"
-                            className="h-12 w-auto"
-                        />
-                        <SearchBar />
+                <header className="w-full flex flex-col gap-6 border-b border-zinc-200 pb-8">
+                    <div className="w-full flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <img
+                                src={logo.src}
+                                alt="PromptHub"
+                                className="h-10 w-auto"
+                            />
+                            <SearchBar />
+                        </div>
+
+                        <div className="flex items-center gap-3 text-sm font-medium">
+                            <a
+                                href="/login"
+                                className="text-zinc-600 hover:text-zinc-900"
+                            >
+                                로그인
+                            </a>
+                            <a
+                                href="/signup"
+                                className="rounded-lg bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-800"
+                            >
+                                회원가입
+                            </a>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 font-semibold text-zinc-500  text-sm">
+
+                    <div className="flex items-center gap-2 overflow-x-auto pb-2 font-semibold text-zinc-500 text-sm">
                         추천 ·
                         {recommendedKeywords.map((keyword) => (
                             <KeywordChip

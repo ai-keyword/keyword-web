@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { fillKeyword } from "@/lib/api";
+import { fillKeyword, incrementPromptView } from "@/lib/api";
 import type { Prompt } from "@/lib/types";
 import { RankBadge } from "@/components/RankBadge";
 
 type TextPromptCardProps = {
-    prompt: Prompt;
+    prompt: Prompt & { views?: number };
     displayKeyword?: string;
 };
 
@@ -14,6 +14,7 @@ export function TextPromptCard({
     prompt,
     displayKeyword = prompt.keyword,
 }: TextPromptCardProps) {
+    const [views, setViews] = useState(prompt.views ?? 0);
     const [isOpen, setIsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const filledContent = fillKeyword(prompt.content, displayKeyword);
@@ -24,11 +25,21 @@ export function TextPromptCard({
         window.setTimeout(() => setCopied(false), 1400);
     }
 
+    async function handleOpen() {
+        setIsOpen(true);
+        try {
+            await incrementPromptView(prompt.id);
+            setViews((prev) => prev + 1);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     return (
         <>
             <button
                 type="button"
-                onClick={() => setIsOpen(true)}
+                onClick={handleOpen}
                 className="cursor-pointer flex min-h-72 w-[78vw] max-w-72 shrink-0 snap-start flex-col justify-between rounded-lg border border-zinc-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md sm:w-full sm:max-w-none"
             >
                 <div className="space-y-5">
@@ -48,8 +59,8 @@ export function TextPromptCard({
                     ) : null}
                 </div>
                 <div className="mt-6 flex items-center justify-between gap-3 text-sm font-semibold text-zinc-500">
-                    <span>{prompt.author}</span>
-                    <span>글씨 프롬프트</span>
+                    <span>작성자: {prompt.author}</span>
+                    <span>조회수 {views}회</span>
                 </div>
             </button>
 
@@ -96,7 +107,7 @@ export function TextPromptCard({
                         </div>
                         <div className="mt-5 flex items-center justify-between gap-3">
                             <span className="text-sm font-semibold text-zinc-500">
-                                작성자 {prompt.author}
+                                작성자: {prompt.author} (조회수 {views}회)
                             </span>
                             <button
                                 type="button"

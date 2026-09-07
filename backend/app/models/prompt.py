@@ -17,4 +17,5 @@ class Prompt(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     author: Mapped[str] = mapped_column(String(80))
+    views: Mapped[int] = mapped_column(Integer, default=0, index=True)  # 조회수 추가
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
