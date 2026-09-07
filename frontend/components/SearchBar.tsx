@@ -1,26 +1,29 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState } from "react";
 
-type SearchBarProps = {
-    defaultKeyword?: string;
-};
-
-export function SearchBar({ defaultKeyword = "" }: SearchBarProps) {
+export function SearchBar() {
     const router = useRouter();
-    const [keyword, setKeyword] = useState(defaultKeyword);
+    const params = useParams<{ keyword?: string }>();
+    const currentKeyword = params?.keyword
+        ? decodeURIComponent(params.keyword)
+        : "";
+
+    const [keyword, setKeyword] = useState(currentKeyword);
+
+    useEffect(() => {
+        setKeyword(currentKeyword);
+    }, [currentKeyword]);
 
     function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
-        const trimmedKeyword = keyword.trim().replace(/^#/, "");
-
-        if (!trimmedKeyword) {
+        const trimmed = keyword.trim().replace(/^#/, "");
+        if (!trimmed) {
             router.push("/");
             return;
         }
-
-        router.push(`/keyword/${encodeURIComponent(trimmedKeyword)}`);
+        router.push(`/keyword/${encodeURIComponent(trimmed)}`);
     }
 
     return (
@@ -36,11 +39,11 @@ export function SearchBar({ defaultKeyword = "" }: SearchBarProps) {
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="#키워드를 검색"
-                className="min-h-12 flex-1 rounded-lg px-4 text-base font-semibold text-zinc-950 outline-none placeholder:text-zinc-400"
+                className="h-12 flex-1 rounded-lg px-4 text-base font-semibold text-zinc-950 outline-none placeholder:text-zinc-400"
             />
             <button
                 type="submit"
-                className="cursor-pointer flex justify-center items-center h-12 rounded-lg bg-zinc-950 px-5 text-sm font-bold text-white transition hover:bg-zinc-800"
+                className="flex h-12 items-center justify-center rounded-lg bg-zinc-950 px-5 text-sm font-bold text-white transition hover:bg-zinc-800"
             >
                 검색
             </button>

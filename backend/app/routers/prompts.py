@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, status, UploadFile
 from sqlalchemy.orm import Session
+from typing import Optional
 
 from app.core.database import get_db
-from app.schemas.prompt import PromptCreate, PromptListResponse, PromptRead
+from app.schemas.prompt import PromptListResponse, PromptRead
 from app.services import prompt_service
 
 router = APIRouter(prefix="/api/prompts", tags=["prompts"])
@@ -33,12 +34,31 @@ def get_prompt(prompt_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=PromptRead, status_code=status.HTTP_201_CREATED)
-def create_prompt(prompt: PromptCreate, db: Session = Depends(get_db)):
-    return prompt_service.create_prompt(db, prompt)
+async def create_prompt(
+    type: str = Form(...),
+    keyword: str = Form(...),
+    content: str = Form(...),
+    description: Optional[str] = Form(None),
+    author: str = Form("익명"),
+    thumbnail: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+):
+    prompt_data = {
+        "type": type,
+        "keyword": keyword,
+        "content": content,
+        "description": description,
+        "author": author,
+        "thumbnail": thumbnail,
+    }
+    
+    new_prompt = prompt_service.create_prompt_with_file(db, prompt_data)
+    return new_prompt
+
 
 @router.post("/{prompt_id}/view", response_model=PromptRead)
 def increase_prompt_views(prompt_id: str, db: Session = Depends(get_db)):
-    prompt = prompt.increment_views(db, prompt_id)
+    prompt = prompt_service.increment_views(db, prompt_id)
     if not prompt:
         raise HTTPException(status_code=404, detail="Prompt not found")
     return prompt

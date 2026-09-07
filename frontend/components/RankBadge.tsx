@@ -14,10 +14,10 @@ export function RankBadge({ rank }: RankBadgeProps) {
                 : "bg-black text-white";
 
     return (
-        <span
+        <i
             className={`inline-flex min-h-10 min-w-10 shadow-sm items-center justify-center rounded-full px-2 text-sm font-black ${rankColor}`}
         >
             #{rank}
-        </span>
+        </i>
     );
 }
