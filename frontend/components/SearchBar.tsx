@@ -39,11 +39,11 @@ export function SearchBar() {
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
                 placeholder="#키워드를 검색"
-                className="h-12 flex-1 rounded-lg px-4 text-base font-semibold text-zinc-950 outline-none placeholder:text-zinc-400"
+                className="h-8 flex-1 rounded-lg px-4 text-base font-semibold text-zinc-950 outline-none placeholder:text-zinc-400"
             />
             <button
                 type="submit"
-                className="flex h-12 items-center justify-center rounded-lg bg-zinc-950 px-5 text-sm font-bold text-white transition hover:bg-zinc-800"
+                className="flex h-8 items-center justify-center rounded-lg bg-zinc-950 px-5 text-sm font-bold text-white transition hover:bg-zinc-800"
             >
                 검색
             </button>

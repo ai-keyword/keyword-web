@@ -4,11 +4,17 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
 const BACKEND_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export async function createPromptAction(formData: FormData) {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
+
+    // 💡 쿠키에 저장된 username을 가져옵니다 (쿠키 이름이 username이라고 가정)
+    const usernameCookie = cookieStore.get("username")?.value;
+    if (usernameCookie) {
+        formData.append("author", decodeURIComponent(usernameCookie));
+    }
 
     try {
         const res = await fetch(`${BACKEND_URL}/api/prompts`, {

@@ -10,9 +10,15 @@ type PromptQuery = {
     sort?: "rank" | "recent";
 };
 
+export function resolveImageUrl(path: string | null | undefined) {
+    if (!path) return null;
+    if (path.startsWith("http")) return path; // 이미 완전한 URL이면 그대로
+    return `${API_BASE_URL}${path}`;
+}
+
 export async function incrementPromptView(id: string): Promise<void> {
     try {
-        await fetch(`http://127.0.0.1:8000/prompts/${id}/view`, {
+        await fetch(`http://127.0.0.1:8000/api/prompts/${id}/view`, {
             method: "POST",
         });
     } catch (error) {
@@ -73,3 +79,4 @@ export function fillKeyword(content: string, keyword: string) {
 export function normalizeKeyword(keyword: string) {
     return keyword.trim().replace(/^#/, "");
 }
+

@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { fillKeyword, incrementPromptView } from "@/lib/api";
+import { fillKeyword, incrementPromptView, resolveImageUrl } from "@/lib/api";
 import type { Prompt } from "@/lib/types";
 import { RankBadge } from "@/components/RankBadge";
+import { useRouter } from "next/navigation";
 
 type PromptCardProps = {
     prompt: Prompt & { views?: number };
@@ -19,14 +20,16 @@ export function PromptCard({
     const [views, setViews] = useState(prompt.views ?? 0);
     const filledContent = fillKeyword(prompt.content, displayKeyword);
     const thumbnailBackground = prompt.thumbnailUrl
-        ? `linear-gradient(135deg, rgba(250,250,250,0.15), rgba(231,240,255,0.42)), url(${prompt.thumbnailUrl})`
-        : "linear-gradient(135deg, #fafafa 0%, #e7f0ff 48%, #f1f5f9 100%)";
+        ? `linear-gradient(...), url(${resolveImageUrl(prompt.thumbnailUrl)})`
+        : "linear-gradient(...)";
+    const router = useRouter();
 
     async function handleOpen() {
         setIsOpen(true);
         try {
             await incrementPromptView(prompt.id);
             setViews((prev) => prev + 1);
+            router.refresh();
         } catch (error) {
             console.error(error);
         }

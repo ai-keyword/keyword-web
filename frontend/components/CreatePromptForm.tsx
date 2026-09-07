@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { createPromptAction } from "@/app/prompts/create/actions"; // actions 경로에 맞게 수정해주세요
+import { createPromptAction } from "@/app/prompts/create/actions";
 
 type PromptType = "image" | "text";
 
@@ -10,7 +10,6 @@ interface FormState {
     keyword: string;
     content: string;
     description: string;
-    author: string;
     thumbnailFile: File | null;
 }
 
@@ -18,7 +17,6 @@ const initialForm: FormState = {
     keyword: "",
     content: "",
     description: "",
-    author: "",
     thumbnailFile: null,
 };
 
@@ -64,7 +62,7 @@ export default function CreatePromptForm() {
         body.append("type", type as string);
         body.append("keyword", form.keyword.trim());
         body.append("content", form.content.trim());
-        body.append("author", form.author.trim() || "익명");
+
         if (type === "text" && form.description.trim()) {
             body.append("description", form.description.trim());
         }

@@ -10,7 +10,6 @@ interface HeaderProps {
 }
 
 export async function Header({ recommend = true }: HeaderProps) {
-    // 쿠키에서 인증 토큰 가져오기
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 

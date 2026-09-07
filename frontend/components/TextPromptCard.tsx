@@ -4,6 +4,7 @@ import { useState } from "react";
 import { fillKeyword, incrementPromptView } from "@/lib/api";
 import type { Prompt } from "@/lib/types";
 import { RankBadge } from "@/components/RankBadge";
+import { useRouter } from "next/navigation";
 
 type TextPromptCardProps = {
     prompt: Prompt & { views?: number };
@@ -25,11 +26,14 @@ export function TextPromptCard({
         window.setTimeout(() => setCopied(false), 1400);
     }
 
+    const router = useRouter();
+
     async function handleOpen() {
         setIsOpen(true);
         try {
             await incrementPromptView(prompt.id);
             setViews((prev) => prev + 1);
+            router.refresh();
         } catch (error) {
             console.error(error);
         }

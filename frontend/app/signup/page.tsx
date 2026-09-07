@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { signupAction } from "./actions";
-import { EmailVerifyInput } from "@/components/EmailVerifyInput";
+import SignupForm from "@/components/SignupForm";
 
 export const dynamic = "force-dynamic";
 
@@ -28,79 +28,7 @@ export default function SignupPage() {
                                 새로운 계정을 만드세요.
                             </p>
                         </div>
-
-                        <form action={signupAction} className="space-y-5">
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="name"
-                                    className="text-sm font-bold text-zinc-950"
-                                >
-                                    이름
-                                </label>
-                                <input
-                                    id="name"
-                                    name="name"
-                                    type="text"
-                                    placeholder="이름을 입력하세요"
-                                    required
-                                    className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="username"
-                                    className="text-sm font-bold text-zinc-950"
-                                >
-                                    아이디
-                                </label>
-                                <input
-                                    id="username"
-                                    name="username"
-                                    type="text"
-                                    placeholder="아이디를 입력하세요"
-                                    required
-                                    className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label
-                                    htmlFor="password"
-                                    className="text-sm font-bold text-zinc-950"
-                                >
-                                    비밀번호
-                                </label>
-                                <input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder="비밀번호를 입력하세요"
-                                    required
-                                    className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
-                                />
-                            </div>
-
-                            {/* 클라이언트 컴포넌트: 이메일 전송 및 인증번호 검증 */}
-                            <EmailVerifyInput />
-
-                            <button
-                                type="submit"
-                                className="w-full rounded-xl bg-zinc-950 py-3.5 text-sm font-bold text-white transition hover:bg-zinc-800 cursor-pointer"
-                            >
-                                회원가입
-                            </button>
-                        </form>
-
-                        <div className="mt-6 text-center text-sm font-semibold text-zinc-500">
-                            이미 계정이 있으신가요?{" "}
-                            <Link
-                                href="/login"
-                                className="text-zinc-950 font-bold hover:underline"
-                            >
-                                로그인
-                            </Link>
-                        </div>
+                        <SignupForm signupAction={signupAction} />
                     </div>
                 </div>
             </div>
