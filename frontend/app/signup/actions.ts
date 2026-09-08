@@ -1,12 +1,7 @@
 "use server";
 
-// import { redirect } from "next/navigation";
 import { API_BASE_URL } from "@/lib/config";
-import {
-    getErrorMessage,
-    isNextRedirectError,
-    parseApiError,
-} from "@/lib/errors";
+import { getErrorMessage, parseApiError } from "@/lib/errors";
 import type { SignupRequest, VerifyCodeRequest } from "@/types";
 
 export async function signupAction(formData: FormData) {

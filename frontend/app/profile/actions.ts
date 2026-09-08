@@ -4,6 +4,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { parseApiError } from "@/lib/errors";
 import { CurrentUser } from "@/types";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 
 export async function profileAction(): Promise<CurrentUser> {
     const cookieStore = await cookies();
@@ -17,6 +18,10 @@ export async function profileAction(): Promise<CurrentUser> {
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
         });
+
+        if (res.status === 401) {
+            redirect("/login");
+        }
 
         if (!res.ok) {
             const errorData: unknown = await res.json().catch(() => ({}));

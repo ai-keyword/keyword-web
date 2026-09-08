@@ -6,6 +6,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from pwdlib.hashers.bcrypt import BcryptHasher
+from pwdlib.exceptions import UnknownHashError
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -35,7 +36,10 @@ def get_password_hash(password: str) -> str:
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return password_hash.verify(plain_password, hashed_password)
+    try:
+        return password_hash.verify(plain_password, hashed_password)
+    except UnknownHashError:
+        return False
 
 
 # ── JWT 토큰 생성 ─────────────────────────────────────

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { fillKeyword, incrementPromptView } from "@/lib/api";
 import type { Prompt } from "@/types";
+import { togglePromptLikeAction } from "@/app/prompts/actions";
 
 export function usePromptInteraction(
     prompt: Prompt,
@@ -14,6 +15,9 @@ export function usePromptInteraction(
     const [isOpen, setIsOpen] = useState(false);
     const [copied, setCopied] = useState(false);
     const [views, setViews] = useState(prompt.views);
+    const [isLiked, setIsLiked] = useState(prompt.isLiked);
+    const [likeCount, setLikeCount] = useState(prompt.likeCount);
+    const [likePending, setLikePending] = useState(false);
     const filledContent = fillKeyword(prompt.content, displayKeyword);
 
     async function handleOpen() {
@@ -34,6 +38,34 @@ export function usePromptInteraction(
         window.setTimeout(() => setCopied(false), 1400);
     }
 
+    async function toggleLike() {
+        if (likePending) return;
+
+        const previousIsLiked = isLiked;
+        const previousLikeCount = likeCount;
+        const nextIsLiked = !isLiked;
+        setIsLiked(nextIsLiked);
+        setLikeCount((count) => count + (nextIsLiked ? 1 : -1));
+        setLikePending(true);
+
+        const result = await togglePromptLikeAction(prompt.id);
+        setLikePending(false);
+
+        if (
+            result.error ||
+            result.is_liked === undefined ||
+            result.like_count === undefined
+        ) {
+            setIsLiked(previousIsLiked);
+            setLikeCount(previousLikeCount);
+            toast.error(result.error ?? "좋아요 처리에 실패했습니다.");
+            return;
+        }
+
+        setIsLiked(result.is_liked);
+        setLikeCount(result.like_count);
+    }
+
     function close() {
         setIsOpen(false);
     }
@@ -42,9 +74,13 @@ export function usePromptInteraction(
         isOpen,
         copied,
         views,
+        isLiked,
+        likeCount,
+        likePending,
         filledContent,
         handleOpen,
         copyPrompt,
+        toggleLike,
         close,
     };
 }

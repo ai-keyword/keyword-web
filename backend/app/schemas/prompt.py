@@ -56,4 +56,4 @@ class KeywordItem(BaseModel):
 
 
 class KeywordListResponse(BaseModel):
-    keywords: list[KeywordItem]
+    keywords: list[str]

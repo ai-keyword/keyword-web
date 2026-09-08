@@ -100,23 +100,26 @@ export async function getPrompts(
     const queryString = searchParams.toString();
     const url = `${API_BASE_URL}/api/prompts${queryString ? `?${queryString}` : ""}`;
 
-    let cookieHeader = options?.cookieHeader;
+    let token: string | undefined;
+    const cookieHeader = options?.cookieHeader;
+    if (cookieHeader?.startsWith("token=")) {
+        token = cookieHeader.slice("token=".length);
+    }
+
     if (!cookieHeader && typeof window === "undefined") {
         try {
             const { cookies } = await import("next/headers");
             const cookieStore = await cookies();
-            const token = cookieStore.get("token")?.value;
-            if (token) {
-                cookieHeader = `token=${token}`;
-            }
+            token = cookieStore.get("token")?.value;
         } catch {
             // 서버 환경이 아니거나 쿠키 접근 불가 시 통과
         }
     }
 
+    const headers = token ? { Authorization: `Bearer ${token}` } : undefined;
     const response = await fetch(url, {
-        headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
-        ...(cookieHeader
+        headers,
+        ...(token
             ? { cache: "no-store" as const }
             : { next: { revalidate: 30 } }),
     });

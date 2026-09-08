@@ -4,22 +4,31 @@ import { RankBadge } from "@/components/ui/RankBadge";
 import { CloseIconButton } from "@/components/ui/IconButton";
 import { PromptAuthorRow } from "@/components/prompt/PromptAuthorRow";
 import { CopyPromptButton } from "@/components/prompt/CopyPromptButton";
+import { PromptLikeButton } from "./PromptLikeButton";
 
 type PromptDetailModalProps = {
     prompt: Prompt;
     views: number;
+    isLiked: boolean;
+    likeCount: number;
+    likePending: boolean;
     copied: boolean;
     onClose: () => void;
     onCopy: () => void;
+    onToggleLike: () => void;
     children: ReactNode;
 };
 
 export function PromptDetailModal({
     prompt,
     views,
+    isLiked,
+    likeCount,
+    likePending,
     copied,
     onClose,
     onCopy,
+    onToggleLike,
     children,
 }: PromptDetailModalProps) {
     return (
@@ -47,9 +56,17 @@ export function PromptDetailModal({
                     <CloseIconButton label="닫기" onClick={onClose} />
                 </div>
                 {children}
-                <div className="mt-5 flex items-center justify-between gap-3">
+                <div className="mt-5 flex items-center justify-between">
                     <PromptAuthorRow author={prompt.author} views={views} />
-                    <CopyPromptButton copied={copied} onCopy={onCopy} />
+                    <div className="flex items-center gap-3">
+                        <PromptLikeButton
+                            isLiked={isLiked}
+                            likeCount={likeCount}
+                            pending={likePending}
+                            onToggle={onToggleLike} 
+                        />
+                        <CopyPromptButton copied={copied} onCopy={onCopy} />
+                    </div>
                 </div>
             </div>
         </div>

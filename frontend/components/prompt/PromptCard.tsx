@@ -23,9 +23,13 @@ export function PromptCard({
         isOpen,
         copied,
         views,
+        isLiked,
+        likeCount,
+        likePending,
         filledContent,
         handleOpen,
         copyPrompt,
+        toggleLike,
         close,
     } = usePromptInteraction(prompt, displayKeyword);
 
@@ -69,9 +73,13 @@ export function PromptCard({
                 <PromptDetailModal
                     prompt={prompt}
                     views={views}
+                    isLiked={isLiked}
+                    likeCount={likeCount}
+                    likePending={likePending}
                     copied={copied}
                     onClose={close}
                     onCopy={copyPrompt}
+                    onToggleLike={toggleLike}
                 >
                     <p className="rounded-lg bg-zinc-50 p-4 text-base font-bold leading-8 text-zinc-950">
                         {filledContent}

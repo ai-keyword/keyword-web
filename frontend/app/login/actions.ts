@@ -20,6 +20,11 @@ export async function loginAction(_prevState: unknown, formData: FormData) {
             body: JSON.stringify(payload),
         });
 
+        console.log(
+            "Login response status:",
+            response.status,
+            response.statusText,
+        );
         const responseText = await response.text();
 
         if (!response.ok) {

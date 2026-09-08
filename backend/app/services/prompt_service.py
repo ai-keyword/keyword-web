@@ -2,6 +2,7 @@ import json
 import os
 import uuid
 from pathlib import Path
+from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -12,6 +13,7 @@ from app.models.prompt import Prompt
 from app.models.user import User
 from app.repositories import prompt_repository
 from app.schemas.prompt import PromptCreate
+from app.core.security import get_password_hash
 
 VALID_PROMPT_TYPES = {"image", "text"}
 UPLOAD_DIR = "static/uploads"
@@ -113,9 +115,58 @@ def seed_from_json(db: Session, data_path: Path) -> None:
     if not data_path.exists():
         return
 
+    if db.query(Prompt.id).first():
+        return
+
+    default_user = db.query(User).filter(User.email == "system@keyword-web.dev").first()
+    if not default_user:
+        default_user = User(
+            name="Keyword System",
+            username="keyword-system",
+            email="system@keyword-web.dev",
+            password=get_password_hash("seed-user"),
+        )
+        db.add(default_user)
+        db.flush()
+    elif not default_user.password.startswith("$2"):
+        default_user.password = get_password_hash("seed-user")
+
     raw_prompts = json.loads(data_path.read_text(encoding="utf-8"))
-    prompts = [PromptCreate.model_validate(prompt) for prompt in raw_prompts]
-    prompt_repository.seed_prompts(db, prompts)
+
+    seeded_keywords: set[str] = set()
+    for prompt_data in raw_prompts:
+        keyword_name = prompt_data.get("keyword")
+        if (
+            keyword_name
+            and keyword_name not in seeded_keywords
+            and not db.get(Keyword, keyword_name)
+        ):
+            db.add(Keyword(name=keyword_name))
+            seeded_keywords.add(keyword_name)
+
+        created_at = prompt_data.get("created_at")
+        if isinstance(created_at, str):
+            created_dt = datetime.fromisoformat(created_at)
+        else:
+            created_dt = datetime.now()
+
+        db.add(
+            Prompt(
+                id=prompt_data.get("id"),
+                type=prompt_data.get("type", "image"),
+                keyword=keyword_name,
+                rank=int(prompt_data.get("rank", 0)),
+                like_count=int(prompt_data.get("like_count", 0)),
+                content=prompt_data.get("content", ""),
+                description=prompt_data.get("description"),
+                thumbnail_url=prompt_data.get("thumbnail_url") or prompt_data.get("thumbnailUrl"),
+                views=int(prompt_data.get("views", 0)),
+                author_id=default_user.id,
+                created_at=created_dt,
+            )
+        )
+
+    db.commit()
 
 
 def normalize_keyword(keyword: str | None):

@@ -19,9 +19,13 @@ export function TextPromptCard({
         isOpen,
         copied,
         views,
+        isLiked,
+        likeCount,
+        likePending,
         filledContent,
         handleOpen,
         copyPrompt,
+        toggleLike,
         close,
     } = usePromptInteraction(prompt, displayKeyword);
 
@@ -61,9 +65,13 @@ export function TextPromptCard({
                 <PromptDetailModal
                     prompt={prompt}
                     views={views}
+                    isLiked={isLiked}
+                    likeCount={likeCount}
+                    likePending={likePending}
                     copied={copied}
                     onClose={close}
                     onCopy={copyPrompt}
+                    onToggleLike={toggleLike}
                 >
                     <div className="space-y-3">
                         <p className="rounded-lg bg-zinc-950 p-4 font-mono text-sm font-semibold leading-7 text-white">
