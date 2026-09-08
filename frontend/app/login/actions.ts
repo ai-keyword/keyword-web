@@ -1,51 +1,41 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-
-const BACKEND_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+import { API_BASE_URL } from "@/lib/config";
+import { getErrorMessage, parseApiError } from "@/lib/errors";
+import type { LoginRequest, LoginResponse } from "@/types";
+import toast from "react-hot-toast";
 
 export async function loginAction(formData: FormData) {
-    const email = formData.get("email")?.toString();
-    const password = formData.get("password")?.toString();
+    const payload: LoginRequest = {
+        email: formData.get("email")?.toString() ?? "",
+        password: formData.get("password")?.toString() ?? "",
+    };
 
     try {
-        const response = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-                email,
-                password,
-            }),
+            body: JSON.stringify(payload),
         });
 
-        // 응답을 먼저 text로 확인
         const responseText = await response.text();
 
-        console.log("Backend status:", response.status);
-        console.log("Backend response:", responseText);
-
         if (!response.ok) {
-            let errorMessage = "로그인에 실패했습니다.";
-
+            let errorBody: unknown = responseText;
             try {
-                const errorData = JSON.parse(responseText);
-                errorMessage = errorData.detail || errorMessage;
+                errorBody = JSON.parse(responseText);
             } catch {
-                errorMessage = responseText || errorMessage;
+                errorBody = responseText;
             }
-
-            throw new Error(errorMessage);
+            throw new Error(parseApiError(errorBody, "로그인에 실패했습니다."));
         }
 
-        const data = JSON.parse(responseText);
-
-        console.log("Login success:", data);
-
+        const data = JSON.parse(responseText) as LoginResponse;
         const cookieStore = await cookies();
+        toast.success("로그인에 성공했습니다!");
 
         cookieStore.set({
             name: "token",
@@ -65,10 +55,9 @@ export async function loginAction(formData: FormData) {
                 maxAge: 60 * 60 * 24,
             });
         }
-    } catch (error: any) {
-        console.error("Login error:", error.message);
+    } catch (error: unknown) {
+        toast.error(getErrorMessage(error, "로그인 중 오류가 발생했습니다."));
+        console.error("Login error:", getErrorMessage(error, "로그인 실패"));
         throw error;
     }
-
-    redirect("/");
 }

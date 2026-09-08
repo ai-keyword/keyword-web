@@ -2,12 +2,12 @@ import json
 import os
 import uuid
 from pathlib import Path
+
 from sqlalchemy.orm import Session
 
+from app.models.prompt import Prompt
 from app.repositories import prompt_repository
 from app.schemas.prompt import PromptCreate
-from app.models.prompt import Prompt  # 본인의 모델 경로에 맞게 확인해주세요
-from datetime import datetime  # 1. 상단에 datetime 임포트 확인
 
 VALID_PROMPT_TYPES = {"image", "text"}
 UPLOAD_DIR = "static/uploads"
@@ -18,6 +18,7 @@ def create_prompt_with_file(db: Session, prompt_data: dict):
     thumbnail = prompt_data.get("thumbnail")
     thumbnail_url = None
 
+    # 업로드된 파일이 있다면 서버 디렉토리에 저장하고 상대 경로 URL 생성
     if thumbnail and thumbnail.filename:
         file_extension = thumbnail.filename.split(".")[-1]
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
@@ -25,7 +26,7 @@ def create_prompt_with_file(db: Session, prompt_data: dict):
 
         with open(file_path, "wb") as buffer:
             buffer.write(thumbnail.file.read())
-            
+
         thumbnail_url = f"/{UPLOAD_DIR}/{unique_filename}"
 
     db_prompt = Prompt(
@@ -33,18 +34,18 @@ def create_prompt_with_file(db: Session, prompt_data: dict):
         keyword=prompt_data["keyword"],
         content=prompt_data["content"],
         description=prompt_data.get("description"),
-        author=prompt_data["author"],
+        author_id=prompt_data["author_id"],  # author(문자열) 대신 로그인한 유저의 id
         thumbnail_url=thumbnail_url,
         views=0,
         rank=0,
-        created_at=datetime.now(timezone.utc),  # 💡 경고 없이 안전하게 UTC 현재 시간 대입
     )
 
     db.add(db_prompt)
     db.commit()
     db.refresh(db_prompt)
-    
+
     return db_prompt
+
 
 def list_prompts(
     db: Session,
@@ -77,43 +78,8 @@ def increment_views(db: Session, prompt_id: str):
     return prompt
 
 
-# 기존 JSON 기반 혹은 Pydantic 스키마 기반 생성 함수
 def create_prompt(db: Session, prompt: PromptCreate):
     return prompt_repository.create_prompt(db, prompt)
-
-
-# 💡 파일 업로드(FormData)를 지원하는 프롬프트 생성 함수
-def create_prompt_with_file(db: Session, prompt_data: dict):
-    thumbnail = prompt_data.get("thumbnail")
-    thumbnail_url = None
-
-    # 업로드된 파일이 있다면 서버 디렉토리에 저장하고 상대 경로 URL 생성
-    if thumbnail and thumbnail.filename:
-        file_extension = thumbnail.filename.split(".")[-1]
-        unique_filename = f"{uuid.uuid4()}.{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, unique_filename)
-
-        with open(file_path, "wb") as buffer:
-            buffer.write(thumbnail.file.read())
-            
-        thumbnail_url = f"/{UPLOAD_DIR}/{unique_filename}"
-
-    db_prompt = Prompt(
-        type=prompt_data["type"],
-        keyword=prompt_data["keyword"],
-        content=prompt_data["content"],
-        description=prompt_data.get("description"),
-        author=prompt_data["author"],
-        thumbnail_url=thumbnail_url,
-        views=0,
-        rank=0,
-    )
-
-    db.add(db_prompt)
-    db.commit()
-    db.refresh(db_prompt)
-    
-    return db_prompt
 
 
 def list_trending_keywords(db: Session):

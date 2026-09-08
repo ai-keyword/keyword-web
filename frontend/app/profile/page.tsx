@@ -1,12 +1,22 @@
-import { Header } from "@/components/Header";
+import { Header } from "@/components/layout/Header";
+import { PageShell } from "@/components/ui/PageShell";
+import profile from "@/public/profile.svg";
+import { profileAction } from "./actions";
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+    const userData = await profileAction();
     return (
-        <main className="min-h-screen bg-background">
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-5 py-8 sm:px-8 lg:px-10">
-                <Header recommend={false} />
-                프로필페이지입니다.
+        <PageShell>
+            <Header recommend={false} />
+            <div className="flex flex-col items-center justify-center gap-4">
+                <img
+                    src={profile.src}
+                    alt="Profile"
+                    className="h-32 w-32 rounded-full object-cover"
+                />
+                <h1 className="text-2xl font-bold">{userData.username}</h1>
+                <p className="text-gray-600">{userData.email}</p>
             </div>
-        </main>
+        </PageShell>
     );
 }

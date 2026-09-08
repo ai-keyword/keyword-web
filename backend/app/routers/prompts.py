@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, status, UploadFile
-from sqlalchemy.orm import Session
 from typing import Optional
 
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from sqlalchemy.orm import Session
+
 from app.core.database import get_db
+from app.core.security import get_current_user
+from app.models.user import User
 from app.schemas.prompt import PromptListResponse, PromptRead
 from app.services import prompt_service
 
@@ -39,19 +42,19 @@ async def create_prompt(
     keyword: str = Form(...),
     content: str = Form(...),
     description: Optional[str] = Form(None),
-    author: str = Form("익명"),
     thumbnail: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),  # 로그인 필수
 ):
     prompt_data = {
         "type": type,
         "keyword": keyword,
         "content": content,
         "description": description,
-        "author": author,
+        "author_id": current_user.id,  # 문자열 author 대신 로그인한 유저의 id
         "thumbnail": thumbnail,
     }
-    
+
     new_prompt = prompt_service.create_prompt_with_file(db, prompt_data)
     return new_prompt
 

@@ -5,9 +5,10 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    app_name: str = "PromptHub API"
+    app_name: str = "Keyword API"
     database_url: str = "sqlite:///./keyword.db"
     frontend_origin: str = "http://localhost:3000"
+    secret_key: str = "dev-secret-key-change-me-in-production" 
     seed_data_path: Path = Path("data/prompts.mock.json")
 
     # 이메일 인증 관련 설정 추가

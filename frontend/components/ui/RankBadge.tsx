@@ -15,7 +15,7 @@ export function RankBadge({ rank }: RankBadgeProps) {
 
     return (
         <i
-            className={`inline-flex min-h-10 min-w-10 shadow-sm items-center justify-center rounded-full px-2 text-sm font-black ${rankColor}`}
+            className={`inline-flex min-h-10 min-w-10 items-center justify-center rounded-full px-2 text-sm font-black shadow-sm ${rankColor}`}
         >
             #{rank}
         </i>

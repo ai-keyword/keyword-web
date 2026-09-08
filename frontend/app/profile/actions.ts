@@ -1,24 +1,21 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { API_BASE_URL } from "@/lib/config";
-import {
-    getErrorMessage,
-    isNextRedirectError,
-    parseApiError,
-} from "@/lib/errors";
+import { parseApiError } from "@/lib/errors";
+import { CurrentUser } from "@/types";
+import { cookies } from "next/headers";
 
-export async function createPromptAction(formData: FormData) {
+export async function profileAction(): Promise<CurrentUser> {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
     try {
-        const res = await fetch(`${API_BASE_URL}/api/prompts`, {
-            method: "POST",
+        const res = await fetch(`${API_BASE_URL}/getme`, {
+            method: "GET",
             headers: {
+                "Content-Type": "application/json",
                 ...(token ? { Authorization: `Bearer ${token}` } : {}),
             },
-            body: formData,
         });
 
         if (!res.ok) {
@@ -27,10 +24,13 @@ export async function createPromptAction(formData: FormData) {
                 parseApiError(errorData, "서버 오류가 발생했어요."),
             );
         }
+
+        const data: CurrentUser = await res.json();
+        return data;
     } catch (err: unknown) {
-        if (isNextRedirectError(err)) throw err;
-        throw new Error(
-            getErrorMessage(err, "등록에 실패했어요. 다시 시도해주세요."),
-        );
+        if (err instanceof Error) {
+            throw err;
+        }
+        throw new Error(parseApiError(err, "서버 오류가 발생했어요."));
     }
 }

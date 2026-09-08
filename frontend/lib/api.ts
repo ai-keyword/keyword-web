@@ -1,24 +1,62 @@
-import type { Prompt, PromptType } from "@/lib/types";
-
-const API_BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ??
-    "http://localhost:8000";
-
-type PromptQuery = {
-    keyword?: string;
-    type?: PromptType;
-    sort?: "rank" | "recent";
-};
+import { API_BASE_URL } from "@/lib/config";
+import { parseApiError } from "@/lib/errors";
+import type {
+    EmailRequest,
+    KeywordItem,
+    KeywordListResponse,
+    MessageResponse,
+    Prompt,
+    PromptApi,
+    PromptAuthor,
+    PromptListResponse,
+    PromptQuery,
+    PromptType,
+    VerifyCodeRequest,
+} from "@/types";
 
 export function resolveImageUrl(path: string | null | undefined) {
     if (!path) return null;
-    if (path.startsWith("http")) return path; // 이미 완전한 URL이면 그대로
+    if (path.startsWith("http")) return path;
     return `${API_BASE_URL}${path}`;
+}
+
+export function fillKeyword(content: string, keyword: string) {
+    return content.replaceAll("#키워드", keyword);
+}
+
+export function normalizeKeyword(keyword: string) {
+    return keyword.trim().replace(/^#/, "");
+}
+
+function authorName(author: PromptAuthor | string): string {
+    return typeof author === "string" ? author : author.username;
+}
+
+export function mapPrompt(prompt: PromptApi): Prompt {
+    const type: PromptType = prompt.type === "text" ? "text" : "image";
+
+    return {
+        id: prompt.id,
+        type,
+        keyword: prompt.keyword,
+        rank: prompt.rank,
+        content: prompt.content,
+        description: prompt.description ?? undefined,
+        thumbnailUrl: prompt.thumbnail_url ?? undefined,
+        author: authorName(prompt.author),
+        views: prompt.views ?? 0,
+        createdAt: prompt.created_at,
+        isLiked: prompt.is_liked ?? false,
+    };
+}
+
+function mapKeyword(item: string | KeywordItem): string {
+    return typeof item === "string" ? item : item.keyword;
 }
 
 export async function incrementPromptView(id: string): Promise<void> {
     try {
-        await fetch(`http://127.0.0.1:8000/api/prompts/${id}/view`, {
+        await fetch(`${API_BASE_URL}/api/prompts/${id}/view`, {
             method: "POST",
         });
     } catch (error) {
@@ -26,7 +64,7 @@ export async function incrementPromptView(id: string): Promise<void> {
     }
 }
 
-export async function getTrendingKeywords() {
+export async function getTrendingKeywords(): Promise<string[]> {
     const response = await fetch(`${API_BASE_URL}/api/keywords/trending`, {
         next: { revalidate: 30 },
     });
@@ -35,11 +73,11 @@ export async function getTrendingKeywords() {
         throw new Error("추천 키워드를 불러오지 못했습니다.");
     }
 
-    const data = (await response.json()) as { keywords: string[] };
-    return data.keywords;
+    const data = (await response.json()) as KeywordListResponse;
+    return data.keywords.map(mapKeyword);
 }
 
-export async function getPrompts(query: PromptQuery = {}) {
+export async function getPrompts(query: PromptQuery = {}): Promise<Prompt[]> {
     const searchParams = new URLSearchParams();
 
     if (query.keyword) {
@@ -64,19 +102,44 @@ export async function getPrompts(query: PromptQuery = {}) {
         throw new Error("프롬프트를 불러오지 못했습니다.");
     }
 
-    const data = (await response.json()) as { prompts: Prompt[] };
-    return data.prompts;
+    const data = (await response.json()) as PromptListResponse;
+    return data.prompts.map(mapPrompt);
 }
 
 export async function getPromptsByType(type: PromptType, keyword?: string) {
     return getPrompts({ keyword, type, sort: "rank" });
 }
 
-export function fillKeyword(content: string, keyword: string) {
-    return content.replaceAll("#키워드", keyword);
+export async function sendVerificationCode(
+    payload: EmailRequest,
+): Promise<MessageResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/send-verification`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+    const data: unknown = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        throw new Error(parseApiError(data, "인증번호 발송에 실패했습니다."));
+    }
+
+    return data as MessageResponse;
 }
 
-export function normalizeKeyword(keyword: string) {
-    return keyword.trim().replace(/^#/, "");
-}
+export async function verifyEmailCode(
+    payload: VerifyCodeRequest,
+): Promise<MessageResponse> {
+    const response = await fetch(`${API_BASE_URL}/api/verify-code`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+    const data: unknown = await response.json().catch(() => null);
 
+    if (!response.ok) {
+        throw new Error(parseApiError(data, "인증번호가 일치하지 않습니다."));
+    }
+
+    return data as MessageResponse;
+}

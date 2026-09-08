@@ -6,6 +6,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
+from app.core.security import get_current_user
 
 from app.core.config import get_settings
 from app.core.database import Base, SessionLocal, engine, get_db
@@ -251,4 +252,38 @@ def signup(
     return {
         "message": "회원가입 성공",
         "user_id": new_user.id
+    }
+
+# =========================================================
+# 12. getme
+# =========================================================
+@app.get("/getme")
+def get_me(
+    current_user: models.User = Depends(get_current_user)
+):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "username": current_user.username,
+        "name": current_user.name,
+        # 계정 생성 연도 추출 (created_at이 datetime 객체인 경우)
+        "created_year": current_user.created_at.year if hasattr(current_user, "created_at") and current_user.created_at else None,
+        # 내가 작성한 프롬프트 목록
+        "written_prompts": [
+            {
+                "id": prompt.id,
+                "title": prompt.title,
+                "created_at": prompt.created_at
+            }
+            for prompt in getattr(current_user, "prompts", [])
+        ],
+        # 내가 좋아요 누른 프롬프트 목록
+        "liked_prompts": [
+            {
+                "id": prompt.id,
+                "title": prompt.title,
+                "author": prompt.author.username if hasattr(prompt, "author") else None
+            }
+            for prompt in getattr(current_user, "liked_prompts", [])
+        ]
     }
