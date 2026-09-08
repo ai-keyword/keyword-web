@@ -1,5 +1,7 @@
+import type { PromptAuthor } from "@/types";
+
 type PromptAuthorRowProps = {
-    author: string;
+    author: PromptAuthor;
     views: number;
     compact?: boolean;
 };
@@ -12,7 +14,7 @@ export function PromptAuthorRow({
     if (compact) {
         return (
             <div className="flex items-center justify-between gap-3 text-sm font-semibold text-zinc-500">
-                <span>작성자: {author}</span>
+                <span>작성자: {author.username}</span>
                 <span>조회수 {views}회</span>
             </div>
         );
@@ -20,7 +22,7 @@ export function PromptAuthorRow({
 
     return (
         <span className="text-sm font-semibold text-zinc-500">
-            작성자: {author} (조회수 {views}회)
+            작성자: {author.username} (조회수 {views}회)
         </span>
     );
 }

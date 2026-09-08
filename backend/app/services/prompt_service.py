@@ -85,36 +85,25 @@ def create_prompt(db: Session, prompt: PromptCreate):
     return prompt_repository.create_prompt(db, prompt)
 
 
-def toggle_like(db: Session, prompt_id: str, user_id: int):
-    # 1. 프롬프트 및 유저 조회
+def toggle_like(db: Session, prompt_id: str, user_id: int) -> tuple[Prompt | None, bool]:
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
-    if not prompt:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="프롬프트를 찾을 수 없습니다.",
-        )
-
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="사용자를 찾을 수 없습니다.",
-        )
 
-    # 2. N:M Relationship (liked_by)을 이용한 좋아요 토글
+    if not prompt or not user:
+        return None, False
+
     if user in prompt.liked_by:
         prompt.liked_by.remove(user)
-        prompt.rank = max(0, prompt.rank - 1)
+        prompt.like_count = max(0, prompt.like_count - 1)
+        is_liked = False
     else:
         prompt.liked_by.append(user)
-        prompt.rank += 1
+        prompt.like_count += 1
+        is_liked = True
 
     db.commit()
     db.refresh(prompt)
-
-    return prompt
-
-
+    return prompt, is_liked
 def get_trending_keywords(db: Session) -> list[str]:
     keywords = db.query(Keyword.name).limit(10).all()
     return [k[0] for k in keywords]

@@ -4,9 +4,8 @@ import { cookies } from "next/headers";
 import { API_BASE_URL } from "@/lib/config";
 import { getErrorMessage, parseApiError } from "@/lib/errors";
 import type { LoginRequest, LoginResponse } from "@/types";
-import toast from "react-hot-toast";
 
-export async function loginAction(formData: FormData) {
+export async function loginAction(_prevState: unknown, formData: FormData) {
     const payload: LoginRequest = {
         email: formData.get("email")?.toString() ?? "",
         password: formData.get("password")?.toString() ?? "",
@@ -30,12 +29,14 @@ export async function loginAction(formData: FormData) {
             } catch {
                 errorBody = responseText;
             }
-            throw new Error(parseApiError(errorBody, "로그인에 실패했습니다."));
+            return {
+                success: false,
+                error: parseApiError(errorBody, "로그인에 실패했습니다."),
+            };
         }
 
         const data = JSON.parse(responseText) as LoginResponse;
         const cookieStore = await cookies();
-        toast.success("로그인에 성공했습니다!");
 
         cookieStore.set({
             name: "token",
@@ -55,9 +56,14 @@ export async function loginAction(formData: FormData) {
                 maxAge: 60 * 60 * 24,
             });
         }
+
+        return { success: true };
     } catch (error: unknown) {
-        toast.error(getErrorMessage(error, "로그인 중 오류가 발생했습니다."));
-        console.error("Login error:", getErrorMessage(error, "로그인 실패"));
-        throw error;
+        const errorMessage = getErrorMessage(
+            error,
+            "로그인 중 오류가 발생했습니다.",
+        );
+        console.error("Login error:", errorMessage);
+        return { success: false, error: errorMessage };
     }
 }

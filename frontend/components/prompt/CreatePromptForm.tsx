@@ -8,6 +8,7 @@ import type { PromptCreateForm, PromptType } from "@/types";
 import { CompactField, CompactTextarea } from "@/components/ui/FormField";
 import { BackIconButton } from "@/components/ui/IconButton";
 import { PromptTypePicker } from "@/components/prompt/PromptTypePicker";
+import toast from "react-hot-toast";
 
 const initialForm: PromptCreateForm = {
     keyword: "",
@@ -66,9 +67,15 @@ export function CreatePromptForm() {
             body.append("thumbnail", form.thumbnailFile);
         }
 
+        toast.loading("등록 중...", { id: "create-prompt" });
+
         startTransition(async () => {
             try {
                 await createPromptAction(body);
+                toast.success("프롬프트가 등록되었습니다.", {
+                    id: "create-prompt",
+                });
+                router.back();
             } catch (err: unknown) {
                 setError(getErrorMessage(err, "등록에 실패했어요."));
             }
@@ -101,7 +108,7 @@ export function CreatePromptForm() {
                     >
                         <CompactField
                             id="keyword"
-                            label="키워드"
+                            label="#키워드"
                             type="text"
                             value={form.keyword}
                             onChange={(e) =>

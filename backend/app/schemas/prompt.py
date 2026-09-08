@@ -1,11 +1,9 @@
 from datetime import datetime
-
 from pydantic import BaseModel, ConfigDict
 
 
-
 class AuthorOut(BaseModel):
-    """프롬프트 응답에 포함될 작성자 정보 (User 모델 일부만 노출)"""
+    """프롬프트 응답에 포함될 작성자 정보"""
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -32,13 +30,20 @@ class PromptRead(PromptBase):
     rank: int
     thumbnail_url: str | None = None
     views: int
+    like_count: int = 0  # 추가된 필드
     created_at: datetime
     author: AuthorOut
     is_liked: bool = False
 
 
-# prompts.py 라우터가 이전에 PromptOut이라는 이름으로 import했을 수도 있어 하위호환용 별칭
+# 하위호환용 별칭
 PromptOut = PromptRead
+
+
+class LikeToggleResponse(BaseModel):
+    """좋아요 토글 시 프론트엔드로 전달할 lightweight 응답"""
+    is_liked: bool
+    like_count: int
 
 
 class PromptListResponse(BaseModel):

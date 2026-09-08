@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import get_current_user, get_current_user_optional
 from app.models.user import User
-from app.schemas.prompt import PromptListResponse, PromptRead
+from app.schemas.prompt import LikeToggleResponse, PromptListResponse, PromptRead
 from app.services import prompt_service
 
 router = APIRouter(prefix="/api/prompts", tags=["prompts"])
@@ -25,7 +25,7 @@ def list_prompts(
 ):
     prompts = prompt_service.list_prompts(db, keyword=keyword, prompt_type=type, sort=sort)
     
-    # 목록 조회 시에도 유저별 is_liked 상태 계산
+    # 목록 조회 시 유저별 is_liked 계산
     for prompt in prompts:
         prompt.is_liked = current_user in prompt.liked_by if current_user else False
 
@@ -59,16 +59,16 @@ async def create_prompt(
 # =========================================================
 # 2. 특수 액션 경로 (Action Sub-routes)
 # =========================================================
-@router.post("/{prompt_id}/like", response_model=PromptRead)
+@router.post("/{prompt_id}/like", response_model=LikeToggleResponse)
 def toggle_prompt_like(
     prompt_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """
-    프롬프트 좋아요 토글
+    프롬프트 좋아요 토글 (Next.js Server Action 응답 규격 맞춤)
     """
-    prompt = prompt_service.toggle_like(db, prompt_id=prompt_id, user_id=current_user.id)
+    prompt, is_liked = prompt_service.toggle_like(db, prompt_id=prompt_id, user_id=current_user.id)
 
     if not prompt:
         raise HTTPException(
@@ -76,9 +76,10 @@ def toggle_prompt_like(
             detail="프롬프트를 찾을 수 없습니다.",
         )
 
-    # 토글 후 현재 유저의 좋아요 상태 설정
-    prompt.is_liked = current_user in prompt.liked_by
-    return prompt
+    return {
+        "is_liked": is_liked,
+        "like_count": prompt.like_count,
+    }
 
 
 @router.post("/{prompt_id}/view", response_model=PromptRead)
@@ -115,6 +116,5 @@ def get_prompt(
             detail="프롬프트를 찾을 수 없습니다.",
         )
 
-    # ORM 객체에 is_liked 동적 속성 부여 후 반환 (PromptRead에서 from_attributes=True 설정 시 자동 매핑)
     prompt.is_liked = current_user in prompt.liked_by if current_user else False
     return prompt

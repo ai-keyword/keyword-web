@@ -17,6 +17,7 @@ class Prompt(Base):
     type: Mapped[str] = mapped_column(String(20), index=True)
     keyword: Mapped[str] = mapped_column(String(80), index=True)
     rank: Mapped[int] = mapped_column(Integer, default=0, index=True)
+    like_count: Mapped[int] = mapped_column(Integer, default=0, index=True)  # 추가된 필드
     content: Mapped[str] = mapped_column(Text)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
