@@ -28,8 +28,11 @@ export function normalizeKeyword(keyword: string) {
     return keyword.trim().replace(/^#/, "");
 }
 
-function authorName(author: PromptAuthor | string): string {
-    return typeof author === "string" ? author : author.username;
+function parseAuthor(author: PromptAuthor | string): PromptAuthor {
+    if (typeof author === "string") {
+        return { id: 0, username: author };
+    }
+    return author;
 }
 
 export function mapPrompt(prompt: PromptApi): Prompt {
@@ -42,10 +45,11 @@ export function mapPrompt(prompt: PromptApi): Prompt {
         rank: prompt.rank,
         content: prompt.content,
         description: prompt.description ?? undefined,
-        thumbnailUrl: prompt.thumbnail_url ?? undefined,
-        author: authorName(prompt.author),
+        thumbnailUrl: prompt.thumbnail_url ?? undefined, // API(snake) -> UI(camel)
+        author: parseAuthor(prompt.author),
         views: prompt.views ?? 0,
-        createdAt: prompt.created_at,
+        likeCount: prompt.like_count ?? 0, // API(snake) -> UI(camel)
+        createdAt: prompt.created_at, // UI 컨벤션에 맞춰 매핑
         isLiked: prompt.is_liked ?? false,
     };
 }
@@ -77,26 +81,45 @@ export async function getTrendingKeywords(): Promise<string[]> {
     return data.keywords.map(mapKeyword);
 }
 
-export async function getPrompts(query: PromptQuery = {}): Promise<Prompt[]> {
+export async function getPrompts(
+    query: PromptQuery = {},
+    options?: { cookieHeader?: string },
+): Promise<Prompt[]> {
     const searchParams = new URLSearchParams();
 
     if (query.keyword) {
         searchParams.set("keyword", normalizeKeyword(query.keyword));
     }
-
     if (query.type) {
         searchParams.set("type", query.type);
     }
-
     if (query.sort) {
         searchParams.set("sort", query.sort);
     }
 
     const queryString = searchParams.toString();
-    const response = await fetch(
-        `${API_BASE_URL}/api/prompts${queryString ? `?${queryString}` : ""}`,
-        { next: { revalidate: 30 } },
-    );
+    const url = `${API_BASE_URL}/api/prompts${queryString ? `?${queryString}` : ""}`;
+
+    let cookieHeader = options?.cookieHeader;
+    if (!cookieHeader && typeof window === "undefined") {
+        try {
+            const { cookies } = await import("next/headers");
+            const cookieStore = await cookies();
+            const token = cookieStore.get("token")?.value;
+            if (token) {
+                cookieHeader = `token=${token}`;
+            }
+        } catch {
+            // 서버 환경이 아니거나 쿠키 접근 불가 시 통과
+        }
+    }
+
+    const response = await fetch(url, {
+        headers: cookieHeader ? { Cookie: cookieHeader } : undefined,
+        ...(cookieHeader
+            ? { cache: "no-store" as const }
+            : { next: { revalidate: 30 } }),
+    });
 
     if (!response.ok) {
         throw new Error("프롬프트를 불러오지 못했습니다.");

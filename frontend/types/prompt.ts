@@ -1,24 +1,27 @@
-import type { components } from "@/lib/api-types";
-
 export type PromptType = "image" | "text";
 
-/** 백엔드 PromptRead 응답의 author 필드 형태 (자동 생성 스펙 기준) */
-export type PromptAuthor = components["schemas"]["AuthorOut"];
-
-/** FastAPI `PromptRead` 응답 — 이제 손으로 유지보수하지 않음.
- *  백엔드 schemas/prompt.py가 바뀌면 `pnpm run generate:types` 실행만으로 자동 반영됨. */
-export type PromptApi = components["schemas"]["PromptRead"];
-
-/** FastAPI `PromptListResponse` 응답 */
-export type PromptListResponse = components["schemas"]["PromptListResponse"];
-
-export type PromptQuery = {
-    keyword?: string;
-    type?: PromptType;
-    sort?: "rank" | "recent";
+export type PromptAuthor = {
+    id: number;
+    username: string;
 };
 
-/** 화면에서 쓰는 프롬프트 모델 (mapPrompt()가 PromptApi → 이 타입으로 변환) */
+/** 백엔드 API에서 넘어오는 Raw 응답 규격 (snake_case) */
+export type PromptApi = {
+    id: string;
+    type: string;
+    keyword: string;
+    rank: number;
+    content: string;
+    description: string | null;
+    thumbnail_url: string | null;
+    views: number;
+    like_count?: number;
+    is_liked?: boolean;
+    created_at: string;
+    author: PromptAuthor | string;
+};
+
+/** 프론트엔드 UI 컴포넌트 전체에서 사용할 단일 표준 모델 (camelCase) */
 export type Prompt = {
     id: string;
     type: PromptType;
@@ -27,10 +30,21 @@ export type Prompt = {
     content: string;
     description?: string;
     thumbnailUrl?: string;
-    author: string;
+    author: PromptAuthor;
     views: number;
-    createdAt: string;
+    likeCount: number;
     isLiked: boolean;
+    createdAt: string;
+};
+
+export type PromptListResponse = {
+    prompts: PromptApi[];
+};
+
+export type PromptQuery = {
+    keyword?: string;
+    type?: PromptType;
+    sort?: "rank" | "recent";
 };
 
 export type PromptCreateForm = {
