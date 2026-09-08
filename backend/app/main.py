@@ -287,3 +287,58 @@ def get_me(
             for prompt in getattr(current_user, "liked_prompts", [])
         ]
     }
+
+# =========================================================
+# 13. prompt like
+# =========================================================
+def toggle_prompt_like(
+    prompt_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    """
+    프롬프트 좋아요 토글 (이미 좋아요한 경우 취소, 안 한 경우 좋아요)
+    """
+    prompt = (
+        db.query(models.Prompt)
+        .filter(models.Prompt.id == prompt_id)
+        .first()
+    )
+
+    if not prompt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="프롬프트를 찾을 수 없습니다."
+        )
+
+    # 이미 좋아요를 눌렀는지 확인
+    like_entry = (
+        db.query(models.PromptLike)
+        .filter(
+            models.PromptLike.prompt_id == prompt_id,
+            models.PromptLike.user_id == current_user.id
+        )
+        .first()
+    )
+
+    if like_entry:
+        # 이미 눌렀다면 좋아요 취소
+        db.delete(like_entry)
+        prompt.like_count = max(0, prompt.like_count - 1)
+    else:
+        # 안 눌렀다면 좋아요 추가
+        new_like = models.PromptLike(
+            prompt_id=prompt_id,
+            user_id=current_user.id
+        )
+        db.add(new_like)
+        prompt.like_count += 1
+
+    db.commit()
+    db.refresh(prompt)
+
+    return {
+        "id": prompt.id,
+        "is_liked": like_entry is None,  # 현재 상태 반환 (좋아요 추가 시 True, 취소 시 False)
+        "like_count": prompt.like_count
+    }

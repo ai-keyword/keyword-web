@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 import jwt
 from fastapi import Depends, HTTPException, status
@@ -13,11 +14,16 @@ from app.models.user import User
 
 settings = get_settings()
 
-# ── JWT 설정 ─────────────────────────────────────────
-# SECRET_KEY, ALGORITHM은 core/config.py의 settings에서 관리 (.env로 분리 권장)
+# ── JWT 및 OAuth2 Scheme 설정 ─────────────────────────
 SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24시간
+
+# 필수 인증용 (토큰이 없거나 유효하지 않으면 401 Unauthorized 에러 발생)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+
+# 선택적 인증용 (auto_error=False: 토큰이 없어도 401 에러를 내지 않고 None 반환)
+oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=False)
 
 
 # ── 비밀번호 해싱 ─────────────────────────────────────
@@ -40,10 +46,7 @@ def create_access_token(data: dict) -> str:
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-# ── 로그인한 유저 조회 (다른 라우터에서 Depends(get_current_user)로 사용) ──
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
-
-
+# ── 로그인 필수 유저 조회 ────────────────────────────────
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
@@ -67,3 +70,27 @@ def get_current_user(
         raise credentials_exception
 
     return user
+
+
+# ── 로그인 선택 유저 조회 (비로그인 상태 허용) ──────────────
+def get_current_user_optional(
+    token: Optional[str] = Depends(oauth2_scheme_optional),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    """
+    유효한 토큰이 있으면 User 객체를 반환하고,
+    토큰이 없거나 유효하지 않은 경우에도 401 에러를 일으키지 않고 None을 반환합니다.
+    """
+    if not token:
+        return None
+
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str | None = payload.get("sub")
+        if email is None:
+            return None
+
+        user = db.query(User).filter(User.email == email).first()
+        return user
+    except jwt.PyJWTError:
+        return None

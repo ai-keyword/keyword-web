@@ -3,9 +3,13 @@ import os
 import uuid
 from pathlib import Path
 
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.models.keyword import Keyword
+from app.models.like import user_likes
 from app.models.prompt import Prompt
+from app.models.user import User
 from app.repositories import prompt_repository
 from app.schemas.prompt import PromptCreate
 
@@ -18,7 +22,6 @@ def create_prompt_with_file(db: Session, prompt_data: dict):
     thumbnail = prompt_data.get("thumbnail")
     thumbnail_url = None
 
-    # 업로드된 파일이 있다면 서버 디렉토리에 저장하고 상대 경로 URL 생성
     if thumbnail and thumbnail.filename:
         file_extension = thumbnail.filename.split(".")[-1]
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
@@ -34,7 +37,7 @@ def create_prompt_with_file(db: Session, prompt_data: dict):
         keyword=prompt_data["keyword"],
         content=prompt_data["content"],
         description=prompt_data.get("description"),
-        author_id=prompt_data["author_id"],  # author(문자열) 대신 로그인한 유저의 id
+        author_id=prompt_data["author_id"],
         thumbnail_url=thumbnail_url,
         views=0,
         rank=0,
@@ -82,8 +85,39 @@ def create_prompt(db: Session, prompt: PromptCreate):
     return prompt_repository.create_prompt(db, prompt)
 
 
-def list_trending_keywords(db: Session):
-    return prompt_repository.list_trending_keywords(db)
+def toggle_like(db: Session, prompt_id: str, user_id: int):
+    # 1. 프롬프트 및 유저 조회
+    prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
+    if not prompt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="프롬프트를 찾을 수 없습니다.",
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="사용자를 찾을 수 없습니다.",
+        )
+
+    # 2. N:M Relationship (liked_by)을 이용한 좋아요 토글
+    if user in prompt.liked_by:
+        prompt.liked_by.remove(user)
+        prompt.rank = max(0, prompt.rank - 1)
+    else:
+        prompt.liked_by.append(user)
+        prompt.rank += 1
+
+    db.commit()
+    db.refresh(prompt)
+
+    return prompt
+
+
+def get_trending_keywords(db: Session) -> list[str]:
+    keywords = db.query(Keyword.name).limit(10).all()
+    return [k[0] for k in keywords]
 
 
 def seed_from_json(db: Session, data_path: Path) -> None:

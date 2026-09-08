@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Upload
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import get_current_user
+from app.core.security import get_current_user, get_current_user_optional
 from app.models.user import User
 from app.schemas.prompt import PromptListResponse, PromptRead
 from app.services import prompt_service
@@ -12,28 +12,24 @@ from app.services import prompt_service
 router = APIRouter(prefix="/api/prompts", tags=["prompts"])
 
 
+# =========================================================
+# 1. 목록 및 생성 (Static / Base Routes)
+# =========================================================
 @router.get("", response_model=PromptListResponse)
 def list_prompts(
     keyword: str | None = Query(default=None),
     type: str | None = Query(default=None),
     sort: str = Query(default="rank"),
     db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     prompts = prompt_service.list_prompts(db, keyword=keyword, prompt_type=type, sort=sort)
+    
+    # 목록 조회 시에도 유저별 is_liked 상태 계산
+    for prompt in prompts:
+        prompt.is_liked = current_user in prompt.liked_by if current_user else False
+
     return {"prompts": prompts}
-
-
-@router.get("/{prompt_id}", response_model=PromptRead)
-def get_prompt(prompt_id: str, db: Session = Depends(get_db)):
-    prompt = prompt_service.get_prompt(db, prompt_id)
-
-    if prompt is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="프롬프트를 찾을 수 없습니다.",
-        )
-
-    return prompt
 
 
 @router.post("", response_model=PromptRead, status_code=status.HTTP_201_CREATED)
@@ -44,24 +40,81 @@ async def create_prompt(
     description: Optional[str] = Form(None),
     thumbnail: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),  # 로그인 필수
+    current_user: User = Depends(get_current_user),
 ):
     prompt_data = {
         "type": type,
         "keyword": keyword,
         "content": content,
         "description": description,
-        "author_id": current_user.id,  # 문자열 author 대신 로그인한 유저의 id
+        "author_id": current_user.id,
         "thumbnail": thumbnail,
     }
 
     new_prompt = prompt_service.create_prompt_with_file(db, prompt_data)
+    new_prompt.is_liked = False
     return new_prompt
 
 
+# =========================================================
+# 2. 특수 액션 경로 (Action Sub-routes)
+# =========================================================
+@router.post("/{prompt_id}/like", response_model=PromptRead)
+def toggle_prompt_like(
+    prompt_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    프롬프트 좋아요 토글
+    """
+    prompt = prompt_service.toggle_like(db, prompt_id=prompt_id, user_id=current_user.id)
+
+    if not prompt:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="프롬프트를 찾을 수 없습니다.",
+        )
+
+    # 토글 후 현재 유저의 좋아요 상태 설정
+    prompt.is_liked = current_user in prompt.liked_by
+    return prompt
+
+
 @router.post("/{prompt_id}/view", response_model=PromptRead)
-def increase_prompt_views(prompt_id: str, db: Session = Depends(get_db)):
+def increase_prompt_views(
+    prompt_id: str,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
     prompt = prompt_service.increment_views(db, prompt_id)
     if not prompt:
-        raise HTTPException(status_code=404, detail="Prompt not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="프롬프트를 찾을 수 없습니다.",
+        )
+
+    prompt.is_liked = current_user in prompt.liked_by if current_user else False
+    return prompt
+
+
+# =========================================================
+# 3. 단일 조회 (Generic Parametric Route)
+# =========================================================
+@router.get("/{prompt_id}", response_model=PromptRead)
+def get_prompt(
+    prompt_id: str,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    prompt = prompt_service.get_prompt(db, prompt_id)
+
+    if prompt is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="프롬프트를 찾을 수 없습니다.",
+        )
+
+    # ORM 객체에 is_liked 동적 속성 부여 후 반환 (PromptRead에서 from_attributes=True 설정 시 자동 매핑)
+    prompt.is_liked = current_user in prompt.liked_by if current_user else False
     return prompt
