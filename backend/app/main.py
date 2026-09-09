@@ -59,11 +59,15 @@ app = FastAPI(
 # 5. CORS 설정
 # =========================================================
 
+origins = [
+    settings.frontend_origin,
+    "https://keyword-web-henna.vercel.app",
+    "http://localhost:3000",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        settings.frontend_origin
-    ],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -315,6 +319,7 @@ def get_me(
 # =========================================================
 # 13. prompt like
 # =========================================================
+d@app.post("/api/prompts/{prompt_id}/like")
 def toggle_prompt_like(
     prompt_id: str,
     db: Session = Depends(get_db),
@@ -363,6 +368,6 @@ def toggle_prompt_like(
 
     return {
         "id": prompt.id,
-        "is_liked": like_entry is None,  # 현재 상태 반환 (좋아요 추가 시 True, 취소 시 False)
+        "is_liked": like_entry is None,
         "like_count": prompt.like_count
     }
