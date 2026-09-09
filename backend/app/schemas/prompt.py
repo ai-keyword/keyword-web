@@ -28,7 +28,7 @@ class PromptRead(PromptBase):
     """프롬프트 응답 (목록/상세 공용)"""
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: str
     ai_model: str | None = None
     rank: int
     thumbnail_url: str | None = None

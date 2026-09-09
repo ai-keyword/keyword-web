@@ -41,7 +41,7 @@ def list_prompts(
     return prompts, total
 
 
-def get_prompt(db: Session, prompt_id: int) -> Prompt | None:
+def get_prompt(db: Session, prompt_id: str) -> Prompt | None:
     return db.get(Prompt, prompt_id)
 
 
@@ -55,7 +55,7 @@ def list_trending_keywords(db: Session) -> list[str]:
 
     return keywords
 
-def increment_views(db: Session, prompt_id: int) -> Prompt | None:
+def increment_views(db: Session, prompt_id: str) -> Prompt | None:
     prompt = get_prompt(db, prompt_id)
     if prompt:
         prompt.views += 1
