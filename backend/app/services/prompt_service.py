@@ -89,11 +89,11 @@ def list_prompts(
     }
 
 
-def get_prompt(db: Session, prompt_id: str):
+def get_prompt(db: Session, prompt_id: int):
     return prompt_repository.get_prompt(db, prompt_id)
 
 
-def increment_views(db: Session, prompt_id: str):
+def increment_views(db: Session, prompt_id: int):
     prompt = get_prompt(db, prompt_id)
     if prompt:
         prompt.views += 1
@@ -108,7 +108,7 @@ def create_prompt(db: Session, prompt: PromptCreate):
     return prompt_repository.create_prompt(db, prompt)
 
 
-def toggle_like(db: Session, prompt_id: str, user_id: int) -> tuple[Prompt | None, bool]:
+def toggle_like(db: Session, prompt_id: int, user_id: int) -> tuple[Prompt | None, bool]:
     prompt = db.query(Prompt).filter(Prompt.id == prompt_id).first()
     user = db.query(User).filter(User.id == user_id).first()
 
@@ -175,7 +175,6 @@ def seed_from_json(db: Session, data_path: Path) -> None:
 
         db.add(
             Prompt(
-                id=prompt_data.get("id"),
                 type=prompt_data.get("type", "image"),
                 keyword=keyword_name,
                 ai_model=prompt_data.get("ai_model"),

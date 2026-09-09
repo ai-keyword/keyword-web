@@ -11,7 +11,7 @@ type TogglePromptLikeResult = {
 };
 
 export async function togglePromptLikeAction(
-    promptId: string,
+    promptId: number,
 ): Promise<TogglePromptLikeResult> {
     const token = (await cookies()).get("token")?.value;
 

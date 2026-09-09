@@ -316,7 +316,7 @@ def get_me(
 # 13. prompt like
 # =========================================================
 def toggle_prompt_like(
-    prompt_id: str,
+    prompt_id: int,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):

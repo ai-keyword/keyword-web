@@ -242,7 +242,7 @@ export interface components {
             /** Description */
             description?: string | null;
             /** Id */
-            id: string;
+            id: number;
             /** Rank */
             rank: number;
             /** Thumbnail Url */
@@ -378,7 +378,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                prompt_id: string;
+                prompt_id: number;
             };
             cookie?: never;
         };
@@ -409,7 +409,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                prompt_id: string;
+                prompt_id: number;
             };
             cookie?: never;
         };

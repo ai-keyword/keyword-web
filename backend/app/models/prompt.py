@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text
@@ -12,8 +11,8 @@ from app.models.like import user_likes
 class Prompt(Base):
     __tablename__ = "prompts"
 
-    id: Mapped[str] = mapped_column(
-        String(80), primary_key=True, default=lambda: str(uuid.uuid4()), index=True
+    id: Mapped[int] = mapped_column(
+        Integer, primary_key=True, autoincrement=True, index=True
     )
     type: Mapped[str] = mapped_column(String(20), index=True)
     keyword: Mapped[str] = mapped_column(String(80), index=True)

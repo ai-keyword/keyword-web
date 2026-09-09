@@ -7,7 +7,7 @@ export type PromptAuthor = {
 
 /** 백엔드 API에서 넘어오는 Raw 응답 규격 (snake_case) */
 export type PromptApi = {
-    id: string;
+    id: number;
     type: string;
     keyword: string;
     ai_model: string | null;
@@ -25,7 +25,7 @@ export type PromptApi = {
 
 /** 프론트엔드 UI 컴포넌트 전체에서 사용할 단일 표준 모델 (camelCase) */
 export type Prompt = {
-    id: string;
+    id: number;
     type: PromptType;
     keyword: string;
     aiModel?: string;

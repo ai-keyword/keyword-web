@@ -80,7 +80,7 @@ async def create_prompt(
 
 @router.get("/{prompt_id}/thumbnail")
 def get_prompt_thumbnail(
-    prompt_id: str,
+    prompt_id: int,
     db: Session = Depends(get_db),
 ):
     prompt = prompt_service.get_prompt(db, prompt_id)
@@ -101,7 +101,7 @@ def get_prompt_thumbnail(
 # =========================================================
 @router.post("/{prompt_id}/like", response_model=LikeToggleResponse)
 def toggle_prompt_like(
-    prompt_id: str,
+    prompt_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -124,7 +124,7 @@ def toggle_prompt_like(
 
 @router.post("/{prompt_id}/view", response_model=PromptRead)
 def increase_prompt_views(
-    prompt_id: str,
+    prompt_id: int,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
@@ -144,7 +144,7 @@ def increase_prompt_views(
 # =========================================================
 @router.get("/{prompt_id}", response_model=PromptRead)
 def get_prompt(
-    prompt_id: str,
+    prompt_id: int,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):

@@ -61,7 +61,7 @@ function mapKeyword(item: string | KeywordItem): string {
     return typeof item === "string" ? item : item.keyword;
 }
 
-export async function incrementPromptView(id: string): Promise<void> {
+export async function incrementPromptView(id: number): Promise<void> {
     try {
         await fetch(`${API_BASE_URL}/api/prompts/${id}/view`, {
             method: "POST",
