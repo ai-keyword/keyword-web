@@ -12,6 +12,7 @@ import toast from "react-hot-toast";
 
 const initialForm: PromptCreateForm = {
     keyword: "",
+    aiModel: "",
     content: "",
     description: "",
     thumbnailFile: null,
@@ -58,6 +59,9 @@ export function CreatePromptForm() {
         const body = new FormData();
         body.append("type", type ?? "");
         body.append("keyword", form.keyword.trim());
+        if (form.aiModel.trim()) {
+            body.append("ai_model", form.aiModel.trim());
+        }
         body.append("content", form.content.trim());
 
         if (type === "text" && form.description.trim()) {
@@ -75,7 +79,7 @@ export function CreatePromptForm() {
                 toast.success("프롬프트가 등록되었습니다.", {
                     id: "create-prompt",
                 });
-                router.back();
+                router.push("/");
             } catch (err: unknown) {
                 setError(getErrorMessage(err, "등록에 실패했어요."));
             }
@@ -126,6 +130,17 @@ export function CreatePromptForm() {
                                 updateField("content", e.target.value)
                             }
                             placeholder="프롬프트 문구를 입력해 주세요."
+                        />
+
+                        <CompactField
+                            id="aiModel"
+                            label="사용한 AI"
+                            type="text"
+                            value={form.aiModel}
+                            onChange={(e) =>
+                                updateField("aiModel", e.target.value)
+                            }
+                            placeholder="예: ChatGPT, Midjourney, Claude"
                         />
 
                         {type === "image" && (

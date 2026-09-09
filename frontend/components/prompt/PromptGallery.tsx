@@ -8,6 +8,9 @@ type PromptGalleryProps = {
     textTitle: string;
     imagePrompts: Prompt[];
     textPrompts: Prompt[];
+    recentImagePrompts: Prompt[];
+    recentTextPrompts: Prompt[];
+    sort: "rank" | "recent";
     displayKeyword?: string;
     imageEmptyMessage?: string;
     textEmptyMessage?: string;
@@ -18,14 +21,22 @@ export function PromptGallery({
     textTitle,
     imagePrompts,
     textPrompts,
+    recentImagePrompts,
+    recentTextPrompts,
+    sort,
     displayKeyword,
     imageEmptyMessage,
     textEmptyMessage,
 }: PromptGalleryProps) {
+    const selectedImagePrompts =
+        sort === "rank" ? imagePrompts : recentImagePrompts;
+    const selectedTextPrompts =
+        sort === "rank" ? textPrompts : recentTextPrompts;
+
     return (
         <>
             <Section title={imageTitle} emptyMessage={imageEmptyMessage}>
-                {imagePrompts.map((prompt) => (
+                {selectedImagePrompts.map((prompt) => (
                     <PromptCard
                         key={prompt.id}
                         prompt={prompt}
@@ -35,7 +46,7 @@ export function PromptGallery({
             </Section>
 
             <Section title={textTitle} emptyMessage={textEmptyMessage}>
-                {textPrompts.map((prompt) => (
+                {selectedTextPrompts.map((prompt) => (
                     <TextPromptCard
                         key={prompt.id}
                         prompt={prompt}

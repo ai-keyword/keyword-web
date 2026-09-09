@@ -7,25 +7,37 @@ type KeywordPageProps = {
     params: Promise<{
         slug: string;
     }>;
+    searchParams: Promise<{ sort?: string }>;
 };
 
 export const dynamic = "force-dynamic";
 
-export default async function KeywordPage({ params }: KeywordPageProps) {
+export default async function KeywordPage({
+    params,
+    searchParams,
+}: KeywordPageProps) {
     const { slug } = await params;
+    const { sort: requestedSort } = await searchParams;
+    const sort = requestedSort === "recent" ? "recent" : "rank";
     const keyword = normalizeKeyword(decodeURIComponent(slug));
-    const [imagePrompts, textPrompts] = await Promise.all([
-        getPromptsByType("image", keyword),
-        getPromptsByType("text", keyword),
-    ]);
+    const [imagePrompts, textPrompts, recentImagePrompts, recentTextPrompts] =
+        await Promise.all([
+            getPromptsByType("image", keyword),
+            getPromptsByType("text", keyword),
+            getPromptsByType("image", keyword, "recent"),
+            getPromptsByType("text", keyword, "recent"),
+        ]);
 
     return (
         <PageShell>
-            <Header />
+            <Header
+                sort={sort}
+                sortPath={`/keyword/${encodeURIComponent(keyword)}`}
+            />
 
             <div className="text-base font-semibold text-zinc-500">
-                {keyword} 검색 결과:{" "}
-                {imagePrompts.length + textPrompts.length}개
+                {keyword} 검색 결과: {imagePrompts.length + textPrompts.length}
+                개
             </div>
 
             <PromptGallery
@@ -33,6 +45,9 @@ export default async function KeywordPage({ params }: KeywordPageProps) {
                 textTitle="글씨 프롬프트 검색 결과"
                 imagePrompts={imagePrompts}
                 textPrompts={textPrompts}
+                recentImagePrompts={recentImagePrompts}
+                recentTextPrompts={recentTextPrompts}
+                sort={sort}
                 displayKeyword={keyword}
                 imageEmptyMessage={`#${keyword} 이미지 프롬프트가 아직 없습니다.`}
                 textEmptyMessage={`#${keyword} 글씨 프롬프트가 아직 없습니다.`}

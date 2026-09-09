@@ -17,12 +17,14 @@ type PromptDetailModalProps = {
     onCopy: () => void;
     onToggleLike: () => void;
     children: ReactNode;
+    image?: string | null;
 };
 
 export function PromptDetailModal({
     prompt,
     views,
     isLiked,
+    image,
     likeCount,
     likePending,
     copied,
@@ -40,11 +42,11 @@ export function PromptDetailModal({
             onClick={onClose}
         >
             <div
-                className="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl"
+                className="w-[min(32rem,calc(100vw-2.5rem))] max-h-[80vh] overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="mb-5 flex items-start justify-between gap-4">
-                    <div>
+                    <div className="">
                         <RankBadge rank={prompt.rank} />
                         <h3
                             id={`${prompt.id}-title`}
@@ -56,16 +58,28 @@ export function PromptDetailModal({
                     <CloseIconButton label="닫기" onClick={onClose} />
                 </div>
                 {children}
-                <div className="mt-5 flex items-center justify-between">
-                    <PromptAuthorRow author={prompt.author} views={views} />
-                    <div className="flex items-center gap-3">
-                        <PromptLikeButton
-                            isLiked={isLiked}
-                            likeCount={likeCount}
-                            pending={likePending}
-                            onToggle={onToggleLike} 
+                <div>
+                    <img
+                        src={image ?? undefined}
+                        alt="이미지를 불러올 수 없습니다."
+                        className="mt-4 w-full rounded-sm"
+                    />
+                    <div className="mt-5 flex items-center justify-between">
+                        <PromptAuthorRow
+                            author={prompt.author}
+                            views={views}
+                            aiModel={prompt.aiModel}
+                            content={prompt.content}
                         />
-                        <CopyPromptButton copied={copied} onCopy={onCopy} />
+                        <div className="flex items-center gap-3">
+                            <PromptLikeButton
+                                isLiked={isLiked}
+                                likeCount={likeCount}
+                                pending={likePending}
+                                onToggle={onToggleLike}
+                            />
+                            <CopyPromptButton copied={copied} onCopy={onCopy} />
+                        </div>
                     </div>
                 </div>
             </div>

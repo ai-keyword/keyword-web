@@ -10,6 +10,7 @@ export type PromptApi = {
     id: string;
     type: string;
     keyword: string;
+    ai_model: string | null;
     rank: number;
     content: string;
     description: string | null;
@@ -26,6 +27,7 @@ export type Prompt = {
     id: string;
     type: PromptType;
     keyword: string;
+    aiModel?: string;
     rank: number;
     content: string;
     description?: string;
@@ -49,6 +51,7 @@ export type PromptQuery = {
 
 export type PromptCreateForm = {
     keyword: string;
+    aiModel: string;
     content: string;
     description: string;
     thumbnailFile: File | null;

@@ -21,7 +21,7 @@ export function CloseIconButton({ label, onClick }: IconButtonProps) {
         <button
             type="button"
             onClick={onClick}
-            className="h-10 w-10 rounded-md border border-zinc-200 text-xl font-bold text-zinc-500 hover:bg-zinc-50"
+            className="cursor-pointer h-10 w-10 rounded-md border border-zinc-200 text-xl font-bold text-zinc-500 hover:bg-zinc-50"
             aria-label={label}
         >
             ×

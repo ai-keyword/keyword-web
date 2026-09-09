@@ -7,9 +7,15 @@ import { RecommendedKeywords } from "@/components/keyword/RecommendedKeywords";
 
 type HeaderProps = {
     recommend?: boolean;
+    sort?: "rank" | "recent";
+    sortPath?: string;
 };
 
-export async function Header({ recommend = true }: HeaderProps) {
+export async function Header({
+    recommend = true,
+    sort = "rank",
+    sortPath,
+}: HeaderProps) {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -72,9 +78,39 @@ export async function Header({ recommend = true }: HeaderProps) {
                 </div>
             </div>
 
-            {recommend ? (
-                <RecommendedKeywords keywords={recommendedKeywords} />
-            ) : null}
+            <div className="w-full flex justify-between items-center">
+                {recommend ? (
+                    <RecommendedKeywords keywords={recommendedKeywords} />
+                ) : null}
+                {sortPath ? (
+                    <nav className="flex gap-2" aria-label="프롬프트 정렬">
+                        <a
+                            href={`${sortPath}?sort=rank`}
+                            aria-current={sort === "rank" ? "page" : undefined}
+                            className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                                sort === "rank"
+                                    ? "bg-zinc-950 text-white"
+                                    : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                            }`}
+                        >
+                            추천순
+                        </a>
+                        <a
+                            href={`${sortPath}?sort=recent`}
+                            aria-current={
+                                sort === "recent" ? "page" : undefined
+                            }
+                            className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                                sort === "recent"
+                                    ? "bg-zinc-950 text-white"
+                                    : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200"
+                            }`}
+                        >
+                            최신순
+                        </a>
+                    </nav>
+                ) : null}
+            </div>
         </header>
     );
 }

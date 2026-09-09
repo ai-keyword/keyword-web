@@ -16,4 +16,4 @@ export type {
     Prompt,
     PromptCreateForm,
 } from "./prompt";
-export type { CurrentUser, UserPromptSummary } from "./user";
+export type { CurrentUser } from "./user";

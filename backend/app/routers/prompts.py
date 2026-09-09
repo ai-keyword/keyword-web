@@ -1,6 +1,6 @@
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -36,6 +36,7 @@ def list_prompts(
 async def create_prompt(
     type: str = Form(...),
     keyword: str = Form(...),
+    ai_model: Optional[str] = Form(None),
     content: str = Form(...),
     description: Optional[str] = Form(None),
     thumbnail: Optional[UploadFile] = File(None),
@@ -45,15 +46,34 @@ async def create_prompt(
     prompt_data = {
         "type": type,
         "keyword": keyword,
+        "ai_model": ai_model,
         "content": content,
         "description": description,
         "author_id": current_user.id,
         "thumbnail": thumbnail,
     }
 
-    new_prompt = prompt_service.create_prompt_with_file(db, prompt_data)
+    new_prompt = await prompt_service.create_prompt_with_file(db, prompt_data)
     new_prompt.is_liked = False
     return new_prompt
+
+
+@router.get("/{prompt_id}/thumbnail")
+def get_prompt_thumbnail(
+    prompt_id: str,
+    db: Session = Depends(get_db),
+):
+    prompt = prompt_service.get_prompt(db, prompt_id)
+    if not prompt or not prompt.thumbnail_data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="썸네일을 찾을 수 없습니다.",
+        )
+
+    return Response(
+        content=prompt.thumbnail_data,
+        media_type=prompt.thumbnail_content_type or "application/octet-stream",
+    )
 
 
 # =========================================================

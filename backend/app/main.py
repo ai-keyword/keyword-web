@@ -9,10 +9,9 @@ from sqlalchemy.orm import Session
 from app.core.security import get_current_user
 
 from app.core.config import get_settings
-from app.core.database import Base, SessionLocal, engine, get_db
+from app.core.database import Base, engine, get_db
 from app.core.security import get_password_hash
 from app.routers import keywords, prompts, auth
-from app.services.prompt_service import seed_from_json
 from app.services.email_service import send_email
 import app.models as models
 
@@ -41,13 +40,6 @@ async def lifespan(app: FastAPI):
 
     # DB 테이블 생성
     Base.metadata.create_all(bind=engine)
-
-    # 시드 데이터 로드
-    with SessionLocal() as db:
-        seed_from_json(
-            db,
-            settings.seed_data_path
-        )
 
     yield
 
@@ -270,16 +262,42 @@ def get_me(
         "written_prompts": [
             {
                 "id": prompt.id,
-                "title": getattr(prompt, "content", None)[:80] if getattr(prompt, "content", None) else None,
+                "type": prompt.type,
+                "keyword": prompt.keyword,
+                "ai_model": prompt.ai_model,
+                "rank": prompt.rank,
+                "content": prompt.content,
+                "description": prompt.description,
+                "thumbnail_url": prompt.thumbnail_url,
+                "views": prompt.views,
+                "like_count": prompt.like_count,
+                "is_liked": prompt in current_user.liked_prompts,
                 "created_at": prompt.created_at,
+                "author": {
+                    "id": prompt.author.id,
+                    "username": prompt.author.username,
+                },
             }
             for prompt in getattr(current_user, "prompts", [])
         ],
         "liked_prompts": [
             {
                 "id": prompt.id,
-                "title": getattr(prompt, "content", None)[:80] if getattr(prompt, "content", None) else None,
-                "author": prompt.author.username if hasattr(prompt, "author") else None,
+                "type": prompt.type,
+                "keyword": prompt.keyword,
+                "ai_model": prompt.ai_model,
+                "rank": prompt.rank,
+                "content": prompt.content,
+                "description": prompt.description,
+                "thumbnail_url": prompt.thumbnail_url,
+                "views": prompt.views,
+                "like_count": prompt.like_count,
+                "is_liked": True,
+                "created_at": prompt.created_at,
+                "author": {
+                    "id": prompt.author.id,
+                    "username": prompt.author.username,
+                },
             }
             for prompt in getattr(current_user, "liked_prompts", [])
         ],

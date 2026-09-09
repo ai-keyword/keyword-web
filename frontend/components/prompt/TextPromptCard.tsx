@@ -31,9 +31,16 @@ export function TextPromptCard({
 
     return (
         <>
-            <button
-                type="button"
+            <div
+                role="button"
+                tabIndex={0}
                 onClick={handleOpen}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleOpen();
+                    }
+                }}
                 className="flex min-h-72 w-[78vw] max-w-72 shrink-0 snap-start cursor-pointer flex-col justify-between rounded-lg border border-zinc-200 bg-white p-5 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md sm:w-full sm:max-w-none"
             >
                 <div className="space-y-5">
@@ -56,10 +63,12 @@ export function TextPromptCard({
                     <PromptAuthorRow
                         author={prompt.author}
                         views={views}
+                        aiModel={prompt.aiModel}
+                        content={prompt.content}
                         compact
                     />
                 </div>
-            </button>
+            </div>
 
             {isOpen ? (
                 <PromptDetailModal

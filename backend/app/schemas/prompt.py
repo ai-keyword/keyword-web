@@ -13,6 +13,7 @@ class AuthorOut(BaseModel):
 class PromptBase(BaseModel):
     type: str
     keyword: str
+    ai_model: str | None = None
     content: str
     description: str | None = None
 
@@ -27,6 +28,7 @@ class PromptRead(PromptBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    ai_model: str | None = None
     rank: int
     thumbnail_url: str | None = None
     views: int

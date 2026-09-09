@@ -42,6 +42,7 @@ export function mapPrompt(prompt: PromptApi): Prompt {
         id: prompt.id,
         type,
         keyword: prompt.keyword,
+        aiModel: prompt.ai_model ?? undefined,
         rank: prompt.rank,
         content: prompt.content,
         description: prompt.description ?? undefined,
@@ -132,8 +133,12 @@ export async function getPrompts(
     return data.prompts.map(mapPrompt);
 }
 
-export async function getPromptsByType(type: PromptType, keyword?: string) {
-    return getPrompts({ keyword, type, sort: "rank" });
+export async function getPromptsByType(
+    type: PromptType,
+    keyword?: string,
+    sort: PromptQuery["sort"] = "rank",
+) {
+    return getPrompts({ keyword, type, sort });
 }
 
 export async function sendVerificationCode(

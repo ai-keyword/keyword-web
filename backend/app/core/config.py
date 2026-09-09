@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     app_name: str = "Keyword API"
-    database_url: str = "sqlite:///./keyword.db"
+    database_url: str = "mysql+pymysql://root:@127.0.0.1:3306/prompthub_db"
     frontend_origin: str = "http://localhost:3000"
     secret_key: str = "dev-secret-key-change-me-in-production" 
     seed_data_path: Path = Path("data/prompts.mock.json")

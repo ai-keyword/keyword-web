@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { fillKeyword, incrementPromptView } from "@/lib/api";
@@ -18,15 +18,22 @@ export function usePromptInteraction(
     const [isLiked, setIsLiked] = useState(prompt.isLiked);
     const [likeCount, setLikeCount] = useState(prompt.likeCount);
     const [likePending, setLikePending] = useState(false);
+    const likeCooldownRef = useRef(false);
     const filledContent = fillKeyword(prompt.content, displayKeyword);
 
     async function handleOpen() {
         setIsOpen(true);
+
+        const viewStorageKey = `prompt-viewed:${prompt.id}`;
+        if (window.localStorage.getItem(viewStorageKey)) return;
+
+        window.localStorage.setItem(viewStorageKey, "1");
         try {
             await incrementPromptView(prompt.id);
             setViews((prev) => prev + 1);
             router.refresh();
         } catch (error) {
+            window.localStorage.removeItem(viewStorageKey);
             console.error(error);
         }
     }
@@ -39,7 +46,7 @@ export function usePromptInteraction(
     }
 
     async function toggleLike() {
-        if (likePending) return;
+        if (likePending || likeCooldownRef.current) return;
 
         const previousIsLiked = isLiked;
         const previousLikeCount = likeCount;
@@ -50,6 +57,10 @@ export function usePromptInteraction(
 
         const result = await togglePromptLikeAction(prompt.id);
         setLikePending(false);
+        likeCooldownRef.current = true;
+        window.setTimeout(() => {
+            likeCooldownRef.current = false;
+        }, 500);
 
         if (
             result.error ||

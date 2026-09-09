@@ -40,19 +40,23 @@ export function PromptCard({
 
     return (
         <>
-            <button
-                type="button"
+            <div
+                role="button"
+                tabIndex={0}
                 onClick={handleOpen}
+                onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        handleOpen();
+                    }
+                }}
                 className="group flex w-[78vw] max-w-72 shrink-0 snap-start cursor-pointer flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md sm:w-full sm:max-w-none"
             >
                 <div
-                    className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-zinc-100 bg-cover bg-center px-6 text-center transition duration-300 group-hover:scale-[1.02]"
+                    className="relative flex aspect-4/3 items-center justify-center overflow-hidden bg-zinc-100 bg-contain bg-center bg-no-repeat px-6 text-center transition duration-300 group-hover:scale-[1.02]"
                     style={{ backgroundImage: thumbnailBackground }}
                     aria-label={`${prompt.keyword} 이미지 프롬프트 썸네일`}
                 >
-                    <span className="rounded-md bg-white/80 px-3 py-2 text-3xl font-black text-zinc-900 shadow-sm backdrop-blur">
-                        #{prompt.keyword}
-                    </span>
                     <div className="absolute left-3 top-3">
                         <RankBadge rank={prompt.rank} />
                     </div>
@@ -64,10 +68,12 @@ export function PromptCard({
                     <PromptAuthorRow
                         author={prompt.author}
                         views={views}
+                        aiModel={prompt.aiModel}
+                        content={prompt.content}
                         compact
                     />
                 </div>
-            </button>
+            </div>
 
             {isOpen ? (
                 <PromptDetailModal
@@ -78,6 +84,7 @@ export function PromptCard({
                     likePending={likePending}
                     copied={copied}
                     onClose={close}
+                    image={imageUrl}
                     onCopy={copyPrompt}
                     onToggleLike={toggleLike}
                 >

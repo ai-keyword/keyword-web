@@ -2,6 +2,8 @@ import { Header } from "@/components/layout/Header";
 import { PageShell } from "@/components/ui/PageShell";
 import profile from "@/public/profile.svg";
 import { profileAction } from "./actions";
+import { LogoutButton } from "@/components/profile/LogoutButton";
+import { MyPromptGallery } from "@/components/profile/MyPromptGallery";
 
 export default async function ProfilePage() {
     const userData = await profileAction();
@@ -16,6 +18,8 @@ export default async function ProfilePage() {
                 />
                 <h1 className="text-2xl font-bold">{userData.username}</h1>
                 <p className="text-gray-600">{userData.email}</p>
+                <LogoutButton />
+                <MyPromptGallery prompt={userData.written_prompts} />
             </div>
         </PageShell>
     );

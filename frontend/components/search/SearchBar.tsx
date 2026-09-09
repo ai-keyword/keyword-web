@@ -1,14 +1,18 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+
+function extractKeywordFromPath(pathname: string): string {
+    const match = pathname.match(/^\/keyword\/([^/]+)/);
+    if (!match) return "";
+    return decodeURIComponent(match[1]);
+}
 
 export function SearchBar() {
     const router = useRouter();
-    const params = useParams<{ keyword?: string }>();
-    const currentKeyword = params?.keyword
-        ? decodeURIComponent(params.keyword)
-        : "";
+    const pathname = usePathname();
+    const currentKeyword = extractKeywordFromPath(pathname);
 
     const [keyword, setKeyword] = useState(currentKeyword);
 
@@ -43,7 +47,7 @@ export function SearchBar() {
             />
             <button
                 type="submit"
-                className="flex h-8 items-center justify-center rounded-lg bg-zinc-950 px-5 text-sm font-bold text-white transition hover:bg-zinc-800"
+                className="cursor-pointer flex h-8 items-center justify-center rounded-lg bg-zinc-950 px-5 text-sm font-bold text-white transition hover:bg-zinc-800"
             >
                 검색
             </button>

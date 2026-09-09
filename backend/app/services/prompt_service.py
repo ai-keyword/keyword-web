@@ -1,6 +1,4 @@
 import json
-import os
-import uuid
 from pathlib import Path
 from datetime import datetime
 
@@ -16,36 +14,33 @@ from app.schemas.prompt import PromptCreate
 from app.core.security import get_password_hash
 
 VALID_PROMPT_TYPES = {"image", "text"}
-UPLOAD_DIR = "static/uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-
-def create_prompt_with_file(db: Session, prompt_data: dict):
+async def create_prompt_with_file(db: Session, prompt_data: dict):
     thumbnail = prompt_data.get("thumbnail")
-    thumbnail_url = None
+    thumbnail_data = None
+    thumbnail_content_type = None
 
     if thumbnail and thumbnail.filename:
-        file_extension = thumbnail.filename.split(".")[-1]
-        unique_filename = f"{uuid.uuid4()}.{file_extension}"
-        file_path = os.path.join(UPLOAD_DIR, unique_filename)
-
-        with open(file_path, "wb") as buffer:
-            buffer.write(thumbnail.file.read())
-
-        thumbnail_url = f"/{UPLOAD_DIR}/{unique_filename}"
+        thumbnail_data = await thumbnail.read()
+        thumbnail_content_type = thumbnail.content_type
 
     db_prompt = Prompt(
         type=prompt_data["type"],
         keyword=prompt_data["keyword"],
+        ai_model=prompt_data.get("ai_model"),
         content=prompt_data["content"],
         description=prompt_data.get("description"),
         author_id=prompt_data["author_id"],
-        thumbnail_url=thumbnail_url,
+        thumbnail_url=None,
+        thumbnail_data=thumbnail_data,
+        thumbnail_content_type=thumbnail_content_type,
         views=0,
         rank=0,
     )
 
     db.add(db_prompt)
+    db.flush()
+    if thumbnail_data:
+        db_prompt.thumbnail_url = f"/api/prompts/{db_prompt.id}/thumbnail"
     db.commit()
     db.refresh(db_prompt)
 
@@ -155,6 +150,7 @@ def seed_from_json(db: Session, data_path: Path) -> None:
                 id=prompt_data.get("id"),
                 type=prompt_data.get("type", "image"),
                 keyword=keyword_name,
+                ai_model=prompt_data.get("ai_model"),
                 rank=int(prompt_data.get("rank", 0)),
                 like_count=int(prompt_data.get("like_count", 0)),
                 content=prompt_data.get("content", ""),

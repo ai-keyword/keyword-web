@@ -1,9 +1,4 @@
-export type UserPromptSummary = {
-    id: string;
-    title?: string;
-    created_at?: string;
-    author?: string | null;
-};
+import type { Prompt } from "./prompt";
 
 export type CurrentUser = {
     id: number;
@@ -11,6 +6,6 @@ export type CurrentUser = {
     username: string;
     name: string;
     created_year: number | null;
-    written_prompts: UserPromptSummary[];
-    liked_prompts: UserPromptSummary[];
+    written_prompts: Prompt[];
+    liked_prompts: Prompt[];
 };
