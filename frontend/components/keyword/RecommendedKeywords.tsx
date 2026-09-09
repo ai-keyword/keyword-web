@@ -11,8 +11,8 @@ export function RecommendedKeywords({ keywords }: RecommendedKeywordsProps) {
     }
 
     return (
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 text-sm font-semibold text-zinc-500">
-            추천 ·
+        <div className="flex min-w-0 flex-wrap items-center gap-2 pb-2 text-sm font-semibold text-zinc-500">
+            <span className="whitespace-nowrap">추천 ·</span>
             {keywords.map((keyword) => (
                 <KeywordChip
                     key={keyword}

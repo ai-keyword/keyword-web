@@ -1,4 +1,4 @@
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.orm import Session
 
 from app.models.prompt import Prompt
@@ -10,8 +10,11 @@ def list_prompts(
     keyword: str | None = None,
     prompt_type: str | None = None,
     sort: str = "rank",
-) -> list[Prompt]:
+    page: int = 1,
+    page_size: int = 12,
+) -> tuple[list[Prompt], int]:
     statement = select(Prompt)
+    
 
     if keyword:
         search = f"%{keyword}%"
@@ -24,8 +27,18 @@ def list_prompts(
     if prompt_type:
         statement = statement.where(Prompt.type == prompt_type)
 
-    statement = apply_sort(statement, sort)
-    return list(db.scalars(statement).all())
+    count_statement = select(func.count()).select_from(statement.subquery())
+    total = int(db.scalar(count_statement) or 0)
+
+    sorted_statement = apply_sort(statement, sort)
+    paged_statement = sorted_statement.offset((page - 1) * page_size).limit(page_size)
+    prompts = list(db.scalars(paged_statement).all())
+
+    if sort == "rank":
+        for idx, prompt in enumerate(prompts, start=1):
+            prompt.rank = idx
+
+    return prompts, total
 
 
 def get_prompt(db: Session, prompt_id: str) -> Prompt | None:
@@ -61,6 +74,7 @@ def create_prompt(db: Session, prompt: PromptCreate) -> Prompt:
         description=prompt.description,
         thumbnail_url=prompt.thumbnail_url,
         author=prompt.author,
+        is_hide=getattr(prompt, "is_hide", False),
         views=getattr(prompt, "views", 0),  # 조회수 반영 (없으면 기본값 0)
         created_at=prompt.created_at,
     )
@@ -86,6 +100,7 @@ def seed_prompts(db: Session, prompts: list[PromptCreate]) -> None:
                 description=prompt.description,
                 thumbnail_url=prompt.thumbnail_url,
                 author=prompt.author,
+                is_hide=getattr(prompt, "is_hide", False),
                 views=getattr(prompt, "views", 0),  # 조회수 반영
                 created_at=prompt.created_at,
             )
@@ -98,4 +113,4 @@ def apply_sort(statement: Select[tuple[Prompt]], sort: str) -> Select[tuple[Prom
     if sort == "recent":
         return statement.order_by(Prompt.created_at.desc())
 
-    return statement.order_by(Prompt.rank.asc(), Prompt.created_at.desc())
+    return statement.order_by(Prompt.like_count.desc(), Prompt.created_at.desc())

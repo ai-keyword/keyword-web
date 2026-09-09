@@ -7,6 +7,7 @@ import Link from "next/link";
 import { EmailVerifyInput } from "@/components/auth/EmailVerifyInput";
 import { FormField } from "@/components/ui/FormField";
 import { getErrorMessage } from "@/lib/errors";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 type SignupFormProps = {
     signupAction: (formData: FormData) => Promise<void>;
@@ -14,6 +15,7 @@ type SignupFormProps = {
 
 export function SignupForm({ signupAction }: SignupFormProps) {
     const router = useRouter();
+    const [captchaToken, setCaptchaToken] = useState("");
     const [name, setName] = useState("");
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
@@ -229,6 +231,18 @@ export function SignupForm({ signupAction }: SignupFormProps) {
                 setIsVerified={setIsVerified}
             />
             <input type="hidden" name="email" value={email} />
+            <Turnstile
+                siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+                onSuccess={(token) => {
+                    setCaptchaToken(token);
+                }}
+                onExpire={() => {
+                    setCaptchaToken("");
+                }}
+                onError={() => {
+                    setCaptchaToken("");
+                }}
+            />
 
             <button
                 type="submit"

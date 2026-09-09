@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, LargeBinary, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -24,6 +24,7 @@ class Prompt(Base):
     thumbnail_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     thumbnail_data: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     thumbnail_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    is_hide: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False, server_default="0")
     views: Mapped[int] = mapped_column(Integer, default=0, index=True)
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     created_at: Mapped[datetime] = mapped_column(

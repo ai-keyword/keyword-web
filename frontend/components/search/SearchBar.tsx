@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import { useLoading } from "@/components/providers/LoadingProvider";
 
 function extractKeywordFromPath(pathname: string): string {
     const match = pathname.match(/^\/keyword\/([^/]+)/);
@@ -13,6 +14,7 @@ export function SearchBar() {
     const router = useRouter();
     const pathname = usePathname();
     const currentKeyword = extractKeywordFromPath(pathname);
+    const { startLoading } = useLoading();
 
     const [keyword, setKeyword] = useState(currentKeyword);
 
@@ -24,10 +26,20 @@ export function SearchBar() {
         event.preventDefault();
         const trimmed = keyword.trim().replace(/^#/, "");
         if (!trimmed) {
-            router.push("/");
+            if (pathname !== "/") {
+                startLoading();
+                window.setTimeout(() => router.push("/"), 260);
+            }
             return;
         }
-        router.push(`/keyword/${encodeURIComponent(trimmed)}`);
+
+        const targetPath = `/keyword/${encodeURIComponent(trimmed)}`;
+        if (pathname === targetPath) {
+            return;
+        }
+
+        startLoading();
+        window.setTimeout(() => router.push(targetPath), 260);
     }
 
     return (

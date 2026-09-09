@@ -9,11 +9,13 @@ import { usePromptInteraction } from "@/components/prompt/usePromptInteraction";
 type TextPromptCardProps = {
     prompt: Prompt;
     displayKeyword?: string;
+    hideRank?: boolean;
 };
 
 export function TextPromptCard({
     prompt,
     displayKeyword = prompt.keyword,
+    hideRank = false,
 }: TextPromptCardProps) {
     const {
         isOpen,
@@ -45,7 +47,7 @@ export function TextPromptCard({
             >
                 <div className="space-y-5">
                     <div className="flex items-center justify-between gap-3">
-                        <RankBadge rank={prompt.rank} />
+                        {!hideRank ? <RankBadge rank={prompt.rank} /> : null}
                         <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
                             #{prompt.keyword}
                         </span>

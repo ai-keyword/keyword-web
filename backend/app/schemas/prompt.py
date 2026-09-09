@@ -16,6 +16,7 @@ class PromptBase(BaseModel):
     ai_model: str | None = None
     content: str
     description: str | None = None
+    is_hide: bool = False
 
 
 class PromptCreate(PromptBase):
@@ -50,6 +51,10 @@ class LikeToggleResponse(BaseModel):
 
 class PromptListResponse(BaseModel):
     prompts: list[PromptRead]
+    page: int = 1
+    page_size: int = 12
+    total: int = 0
+    total_pages: int = 1
 
 
 class KeywordItem(BaseModel):

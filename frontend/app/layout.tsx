@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { LoadingProvider } from "@/components/providers/LoadingProvider";
 
 export const metadata: Metadata = {
     title: "#키워드",
@@ -11,7 +12,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     return (
         <html lang="ko" className="h-full antialiased">
             <body className="flex min-h-full flex-col">
-                {children}
+                <LoadingProvider>{children}</LoadingProvider>
                 <Toaster position="top-center" />
             </body>
         </html>

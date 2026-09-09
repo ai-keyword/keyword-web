@@ -14,6 +14,7 @@ from app.core.security import get_password_hash
 from app.routers import keywords, prompts, auth
 from app.services.email_service import send_email
 import app.models as models
+from app.core.security import verify_turnstile
 
 
 # =========================================================
@@ -87,6 +88,7 @@ class SignupRequest(BaseModel):
     username: str
     email: EmailStr
     password: str
+    captcha_token: str
 
 
 class EmailRequest(BaseModel):
@@ -174,10 +176,16 @@ def verify_code(
 # =========================================================
 
 @app.post("/api/signup")
-def signup(
+async def signup(
     user_data: SignupRequest,
     db: Session = Depends(get_db)
 ):
+    # -----------------------------------------------------
+    # CAPTCHA 검증
+    # -----------------------------------------------------
+
+    await verify_turnstile(user_data.captcha_token)
+
     # -----------------------------------------------------
     # 이메일 중복 확인
     # -----------------------------------------------------
@@ -245,7 +253,6 @@ def signup(
         "message": "회원가입 성공",
         "user_id": new_user.id
     }
-
 # =========================================================
 # 12. getme
 # =========================================================
@@ -269,6 +276,7 @@ def get_me(
                 "content": prompt.content,
                 "description": prompt.description,
                 "thumbnail_url": prompt.thumbnail_url,
+                "is_hide": bool(prompt.is_hide),
                 "views": prompt.views,
                 "like_count": prompt.like_count,
                 "is_liked": prompt in current_user.liked_prompts,
@@ -290,6 +298,7 @@ def get_me(
                 "content": prompt.content,
                 "description": prompt.description,
                 "thumbnail_url": prompt.thumbnail_url,
+                "is_hide": bool(prompt.is_hide),
                 "views": prompt.views,
                 "like_count": prompt.like_count,
                 "is_liked": True,

@@ -34,6 +34,19 @@ def test_get_prompt_detail():
     assert response.json()["created_at"].startswith("2026-09-05T09:00:00")
 
 
+def test_rank_sort_uses_like_count_descending():
+    with TestClient(app) as client:
+        response = client.get("/api/prompts?type=image&sort=rank")
+
+    assert response.status_code == 200
+    prompts = response.json()["prompts"]
+    like_counts = [prompt["like_count"] for prompt in prompts]
+    assert like_counts == sorted(like_counts, reverse=True)
+    assert [prompt["rank"] for prompt in prompts] == list(
+        range(1, len(prompts) + 1),
+    )
+
+
 def test_get_me_returns_user_profile():
     with SessionLocal() as db:
         user = db.query(User).filter(User.email == "profile-test@example.com").first()

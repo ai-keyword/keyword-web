@@ -14,6 +14,7 @@ export type SignupRequest = {
     username: string;
     email: string;
     password: string;
+    captcha_token: string;
 };
 
 export type EmailRequest = {

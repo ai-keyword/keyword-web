@@ -20,6 +20,15 @@ export default async function ProfilePage() {
                 <p className="text-gray-600">{userData.email}</p>
                 <LogoutButton />
                 <MyPromptGallery prompt={userData.written_prompts} />
+
+                <MyPromptGallery
+                    userData={userData}
+                    prompt={userData.liked_prompts}
+                    imageSectionTitle="좋아요한 이미지 프롬프트"
+                    textSectionTitle="좋아요한 글씨 프롬프트"
+                    imageEmptyMessage="좋아요한 이미지 프롬프트가 없어요."
+                    textEmptyMessage="좋아요한 글씨 프롬프트가 없어요."
+                />
             </div>
         </PageShell>
     );

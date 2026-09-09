@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { getTrendingKeywords } from "@/lib/api";
 import { SearchBar } from "@/components/search/SearchBar";
 import { RecommendedKeywords } from "@/components/keyword/RecommendedKeywords";
+import { SamePageGuardLink } from "@/components/ui/SamePageGuardLink";
 
 type HeaderProps = {
     recommend?: boolean;
@@ -30,60 +31,67 @@ export async function Header({
 
     return (
         <header className="flex w-full flex-col gap-6 border-b border-zinc-200 pb-8">
-            <div className="flex w-full items-center justify-between">
-                <div className="min-w-140 flex items-center gap-4">
-                    <a href="/">
+            <div className="flex w-full flex-wrap items-center justify-between gap-4">
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                    <SamePageGuardLink href="/" className="shrink-0">
                         <img
                             src={logo.src}
                             alt="KeywordLogo"
                             className="h-10 w-auto"
                         />
-                    </a>
-                    <SearchBar />
+                    </SamePageGuardLink>
+                    <div className="min-w-0 flex-1">
+                        <SearchBar />
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-3 text-sm font-medium">
+                <div className="flex shrink-0 items-center gap-3 text-sm font-medium">
                     {token ? (
                         <>
-                            <a
+                            <SamePageGuardLink
                                 href="/prompts/create"
                                 className="flex items-center gap-1 rounded-lg bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-800"
                             >
                                 <span>+</span> 만들기
-                            </a>
-                            <a href="/profile">
+                            </SamePageGuardLink>
+                            <SamePageGuardLink href="/profile">
                                 <img
                                     src={profile.src}
                                     alt="Profile"
                                     className="h-10 w-10 cursor-pointer rounded-full object-cover"
                                 />
-                            </a>
+                            </SamePageGuardLink>
                         </>
                     ) : (
                         <>
-                            <a
+                            <SamePageGuardLink
                                 href="/login"
                                 className="text-zinc-600 hover:text-zinc-900"
                             >
                                 로그인
-                            </a>
-                            <a
+                            </SamePageGuardLink>
+                            <SamePageGuardLink
                                 href="/signup"
                                 className="rounded-lg bg-zinc-900 px-4 py-2 text-white hover:bg-zinc-800"
                             >
                                 회원가입
-                            </a>
+                            </SamePageGuardLink>
                         </>
                     )}
                 </div>
             </div>
 
-            <div className="w-full flex justify-between items-center">
+            <div className="flex w-full flex-wrap items-center justify-between gap-3">
                 {recommend ? (
-                    <RecommendedKeywords keywords={recommendedKeywords} />
+                    <div className="min-w-0 flex-1">
+                        <RecommendedKeywords keywords={recommendedKeywords} />
+                    </div>
                 ) : null}
                 {sortPath ? (
-                    <nav className="flex gap-2" aria-label="프롬프트 정렬">
+                    <nav
+                        className="flex shrink-0 flex-wrap gap-2"
+                        aria-label="프롬프트 정렬"
+                    >
                         <a
                             href={`${sortPath}?sort=rank`}
                             aria-current={sort === "rank" ? "page" : undefined}

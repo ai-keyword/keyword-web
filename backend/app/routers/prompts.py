@@ -20,16 +20,32 @@ def list_prompts(
     keyword: str | None = Query(default=None),
     type: str | None = Query(default=None),
     sort: str = Query(default="rank"),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=12, ge=1),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
-    prompts = prompt_service.list_prompts(db, keyword=keyword, prompt_type=type, sort=sort)
-    
+    payload = prompt_service.list_prompts(
+        db,
+        keyword=keyword,
+        prompt_type=type,
+        sort=sort,
+        page=page,
+        page_size=page_size,
+    )
+    prompts = payload["prompts"]
+
     # 목록 조회 시 유저별 is_liked 계산
     for prompt in prompts:
         prompt.is_liked = current_user in prompt.liked_by if current_user else False
 
-    return {"prompts": prompts}
+    return {
+        "prompts": prompts,
+        "page": payload["page"],
+        "page_size": payload["page_size"],
+        "total": payload["total"],
+        "total_pages": payload["total_pages"],
+    }
 
 
 @router.post("", response_model=PromptRead, status_code=status.HTTP_201_CREATED)
@@ -39,6 +55,7 @@ async def create_prompt(
     ai_model: Optional[str] = Form(None),
     content: str = Form(...),
     description: Optional[str] = Form(None),
+    is_hide: bool = Form(False),
     thumbnail: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -51,6 +68,7 @@ async def create_prompt(
         "description": description,
         "author_id": current_user.id,
         "thumbnail": thumbnail,
+        "is_hide": is_hide,
     }
 
     new_prompt = await prompt_service.create_prompt_with_file(db, prompt_data)

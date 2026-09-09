@@ -12,6 +12,7 @@ export type {
     PromptAuthor,
     PromptApi,
     PromptListResponse,
+    PromptPage,
     PromptQuery,
     Prompt,
     PromptCreateForm,

@@ -10,6 +10,7 @@ import { usePromptInteraction } from "@/components/prompt/usePromptInteraction";
 type PromptCardProps = {
     prompt: Prompt;
     displayKeyword?: string;
+    hideRank?: boolean;
 };
 
 const thumbnailOverlay =
@@ -18,6 +19,7 @@ const thumbnailOverlay =
 export function PromptCard({
     prompt,
     displayKeyword = prompt.keyword,
+    hideRank = false,
 }: PromptCardProps) {
     const {
         isOpen,
@@ -57,9 +59,11 @@ export function PromptCard({
                     style={{ backgroundImage: thumbnailBackground }}
                     aria-label={`${prompt.keyword} 이미지 프롬프트 썸네일`}
                 >
-                    <div className="absolute left-3 top-3">
-                        <RankBadge rank={prompt.rank} />
-                    </div>
+                    {!hideRank ? (
+                        <div className="absolute left-3 top-3">
+                            <RankBadge rank={prompt.rank} />
+                        </div>
+                    ) : null}
                 </div>
                 <div className="flex min-h-40 flex-1 flex-col justify-between gap-5 p-4">
                     <p className="line-clamp-3 text-base font-extrabold leading-7 text-zinc-950">

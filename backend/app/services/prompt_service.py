@@ -23,6 +23,8 @@ async def create_prompt_with_file(db: Session, prompt_data: dict):
         thumbnail_data = await thumbnail.read()
         thumbnail_content_type = thumbnail.content_type
 
+    is_hide = bool(prompt_data.get("is_hide", prompt_data.get("isHide", False)))
+
     db_prompt = Prompt(
         type=prompt_data["type"],
         keyword=prompt_data["keyword"],
@@ -33,6 +35,7 @@ async def create_prompt_with_file(db: Session, prompt_data: dict):
         thumbnail_url=None,
         thumbnail_data=thumbnail_data,
         thumbnail_content_type=thumbnail_content_type,
+        is_hide=is_hide,
         views=0,
         rank=0,
     )
@@ -52,17 +55,33 @@ def list_prompts(
     keyword: str | None = None,
     prompt_type: str | None = None,
     sort: str = "rank",
+    page: int = 1,
+    page_size: int = 12,
 ):
     normalized_keyword = normalize_keyword(keyword)
     normalized_type = prompt_type if prompt_type in VALID_PROMPT_TYPES else None
     normalized_sort = sort if sort in {"rank", "recent"} else "rank"
 
-    return prompt_repository.list_prompts(
+    page = max(1, page)
+    page_size = max(1, page_size)
+
+    prompts, total = prompt_repository.list_prompts(
         db,
         keyword=normalized_keyword,
         prompt_type=normalized_type,
         sort=normalized_sort,
+        page=page,
+        page_size=page_size,
     )
+
+    total_pages = max(1, (total + page_size - 1) // page_size) if total else 1
+    return {
+        "prompts": prompts,
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+        "total_pages": total_pages,
+    }
 
 
 def get_prompt(db: Session, prompt_id: str):
@@ -156,6 +175,7 @@ def seed_from_json(db: Session, data_path: Path) -> None:
                 content=prompt_data.get("content", ""),
                 description=prompt_data.get("description"),
                 thumbnail_url=prompt_data.get("thumbnail_url") or prompt_data.get("thumbnailUrl"),
+                is_hide=bool(prompt_data.get("is_hide", prompt_data.get("isHide", False))),
                 views=int(prompt_data.get("views", 0)),
                 author_id=default_user.id,
                 created_at=created_dt,

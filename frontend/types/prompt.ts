@@ -41,12 +41,26 @@ export type Prompt = {
 
 export type PromptListResponse = {
     prompts: PromptApi[];
+    page: number;
+    page_size: number;
+    total: number;
+    total_pages: number;
+};
+
+export type PromptPage = {
+    prompts: Prompt[];
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
 };
 
 export type PromptQuery = {
     keyword?: string;
     type?: PromptType;
     sort?: "rank" | "recent";
+    page?: number;
+    pageSize?: number;
 };
 
 export type PromptCreateForm = {

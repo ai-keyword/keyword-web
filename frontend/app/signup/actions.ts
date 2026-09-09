@@ -10,6 +10,7 @@ export async function signupAction(formData: FormData) {
         username: formData.get("username")?.toString() ?? "",
         password: formData.get("password")?.toString() ?? "",
         email: formData.get("email")?.toString() ?? "",
+        captcha_token: formData.get("captcha_token")?.toString() ?? "",
     };
     const verificationCode = formData.get("verificationCode")?.toString();
 
@@ -52,12 +53,7 @@ export async function signupAction(formData: FormData) {
             );
         }
     } catch (error: unknown) {
-        // if (isNextRedirectError(error)) {
-        // throw error;
-        // }
         console.error("Signup error:", getErrorMessage(error, "회원가입 실패"));
         throw error;
     }
-
-    // redirect("/login");
 }

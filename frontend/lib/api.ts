@@ -9,6 +9,7 @@ import type {
     PromptApi,
     PromptAuthor,
     PromptListResponse,
+    PromptPage,
     PromptQuery,
     PromptType,
     VerifyCodeRequest,
@@ -85,7 +86,7 @@ export async function getTrendingKeywords(): Promise<string[]> {
 export async function getPrompts(
     query: PromptQuery = {},
     options?: { cookieHeader?: string },
-): Promise<Prompt[]> {
+): Promise<PromptPage> {
     const searchParams = new URLSearchParams();
 
     if (query.keyword) {
@@ -96,6 +97,12 @@ export async function getPrompts(
     }
     if (query.sort) {
         searchParams.set("sort", query.sort);
+    }
+    if (query.page) {
+        searchParams.set("page", String(query.page));
+    }
+    if (query.pageSize) {
+        searchParams.set("page_size", String(query.pageSize));
     }
 
     const queryString = searchParams.toString();
@@ -130,15 +137,23 @@ export async function getPrompts(
     }
 
     const data = (await response.json()) as PromptListResponse;
-    return data.prompts.map(mapPrompt);
+    return {
+        prompts: data.prompts.map(mapPrompt),
+        page: data.page,
+        pageSize: data.page_size,
+        total: data.total,
+        totalPages: data.total_pages,
+    };
 }
 
 export async function getPromptsByType(
     type: PromptType,
     keyword?: string,
     sort: PromptQuery["sort"] = "rank",
-) {
-    return getPrompts({ keyword, type, sort });
+    page = 1,
+    pageSize = 12,
+): Promise<PromptPage> {
+    return getPrompts({ keyword, type, sort, page, pageSize });
 }
 
 export async function sendVerificationCode(
