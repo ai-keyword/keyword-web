@@ -9,6 +9,7 @@ import { CompactField, CompactTextarea } from "@/components/ui/FormField";
 import { BackIconButton } from "@/components/ui/IconButton";
 import { PromptTypePicker } from "@/components/prompt/PromptTypePicker";
 import toast from "react-hot-toast";
+import { Turnstile } from "@marsidev/react-turnstile";
 
 const initialForm: PromptCreateForm = {
     keyword: "",
@@ -16,11 +17,13 @@ const initialForm: PromptCreateForm = {
     content: "",
     description: "",
     thumbnailFile: null,
+    captcha_token: "",
 };
 
 export function CreatePromptForm() {
     const router = useRouter();
     const [step, setStep] = useState<1 | 2>(1);
+    const [captchaToken, setCaptchaToken] = useState("");
     const [type, setType] = useState<PromptType | null>(null);
     const [form, setForm] = useState<PromptCreateForm>(initialForm);
     const [error, setError] = useState<string | null>(null);
@@ -54,6 +57,12 @@ export function CreatePromptForm() {
             setError("덜 채워진 필드가 있어요. 모든 필드를 채워주세요.");
             return;
         }
+
+        if (!captchaToken.trim()) {
+            setError("캡차 인증을 완료해주세요.");
+            return;
+        }
+
         setError(null);
 
         const body = new FormData();
@@ -63,6 +72,7 @@ export function CreatePromptForm() {
             body.append("ai_model", form.aiModel.trim());
         }
         body.append("content", form.content.trim());
+        body.append("captcha_token", captchaToken);
 
         if (type === "text" && form.description.trim()) {
             body.append("description", form.description.trim());
@@ -71,17 +81,13 @@ export function CreatePromptForm() {
             body.append("thumbnail", form.thumbnailFile);
         }
 
-        toast.loading("등록 중...", { id: "create-prompt" });
-
         startTransition(async () => {
             try {
                 await createPromptAction(body);
-                toast.success("프롬프트가 등록되었습니다.", {
-                    id: "create-prompt",
-                });
-                router.push("/");
             } catch (err: unknown) {
-                setError(getErrorMessage(err, "등록에 실패했어요."));
+                const message = getErrorMessage(err, "등록에 실패했어요.");
+                toast.error(message, { id: "create-prompt" });
+                setError(message);
             }
         });
     }
@@ -176,10 +182,30 @@ export function CreatePromptForm() {
                         {error && (
                             <p className="text-[13px] text-red-500">{error}</p>
                         )}
+                        <Turnstile
+                            siteKey={
+                                process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!
+                            }
+                            onSuccess={(token) => {
+                                setCaptchaToken(token);
+                            }}
+                            onExpire={() => {
+                                setCaptchaToken("");
+                            }}
+                            onError={() => {
+                                setCaptchaToken("");
+                            }}
+                        />
+
+                        <input
+                            type="hidden"
+                            name="captcha_token"
+                            value={captchaToken}
+                        />
 
                         <button
                             type="submit"
-                            disabled={submitting}
+                            disabled={submitting || !captchaToken}
                             className="mt-1 h-10 cursor-pointer rounded-md bg-neutral-900 text-sm font-medium text-white transition-colors hover:bg-neutral-800 disabled:opacity-50"
                         >
                             {submitting ? "등록 중..." : "등록하기"}

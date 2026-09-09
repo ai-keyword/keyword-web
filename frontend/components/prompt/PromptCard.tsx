@@ -6,6 +6,7 @@ import { RankBadge } from "@/components/ui/RankBadge";
 import { PromptAuthorRow } from "@/components/prompt/PromptAuthorRow";
 import { PromptDetailModal } from "@/components/prompt/PromptDetailModal";
 import { usePromptInteraction } from "@/components/prompt/usePromptInteraction";
+import { useEffect } from "react";
 
 type PromptCardProps = {
     prompt: Prompt;
@@ -35,11 +36,16 @@ export function PromptCard({
         close,
     } = usePromptInteraction(prompt, displayKeyword);
 
+    const isHide = Boolean(prompt.isHide);
     const imageUrl = resolveImageUrl(prompt.thumbnailUrl);
     const thumbnailBackground = imageUrl
         ? `${thumbnailOverlay}, url(${imageUrl})`
         : thumbnailOverlay;
+    const maskedPromptText = isHide ? "검열된 프롬프트입니다" : filledContent;
 
+    useEffect(() => {
+        console.log(isHide);
+    }, []);
     return (
         <>
             <div
@@ -56,18 +62,34 @@ export function PromptCard({
             >
                 <div
                     className="relative flex aspect-4/3 items-center justify-center overflow-hidden bg-zinc-100 bg-contain bg-center bg-no-repeat px-6 text-center transition duration-300 group-hover:scale-[1.02]"
-                    style={{ backgroundImage: thumbnailBackground }}
                     aria-label={`${prompt.keyword} 이미지 프롬프트 썸네일`}
                 >
+                    {/* 배경 이미지 및 블러 처리 영역 */}
+                    <div
+                        className={`absolute inset-0 bg-contain bg-center bg-no-repeat transition duration-300 ${
+                            isHide ? "blur-2xl scale-110" : ""
+                        }`}
+                        style={{ backgroundImage: thumbnailBackground }}
+                    />
+
+                    {/* isHide일 때 위에 표시될 문구 및 가우시안/백드롭 블러 오버레이 */}
+                    {isHide ? (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/30 p-2 text-center backdrop-blur-sm">
+                            <span className="rounded-md bg-black/75 px-3 py-1.5 text-xs font-semibold text-white shadow-sm backdrop-blur-xs">
+                                검열된 프롬프트입니다
+                            </span>
+                        </div>
+                    ) : null}
+
                     {!hideRank ? (
-                        <div className="absolute left-3 top-3">
+                        <div className="absolute left-3 top-3 z-20">
                             <RankBadge rank={prompt.rank} />
                         </div>
                     ) : null}
                 </div>
                 <div className="flex min-h-40 flex-1 flex-col justify-between gap-5 p-4">
                     <p className="line-clamp-3 text-base font-extrabold leading-7 text-zinc-950">
-                        {filledContent}
+                        {maskedPromptText}
                     </p>
                     <PromptAuthorRow
                         author={prompt.author}
@@ -93,7 +115,7 @@ export function PromptCard({
                     onToggleLike={toggleLike}
                 >
                     <p className="rounded-lg bg-zinc-50 p-4 text-base font-bold leading-8 text-zinc-950">
-                        {filledContent}
+                        {maskedPromptText}
                     </p>
                 </PromptDetailModal>
             ) : null}

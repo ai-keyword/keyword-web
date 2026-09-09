@@ -10,6 +10,7 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 from sqlalchemy import inspect
+from sqlalchemy.dialects import mysql
 
 
 revision: str = "20260908_0003"
@@ -24,7 +25,9 @@ def upgrade() -> None:
     }
     columns = {
         "like_count": sa.Column("like_count", sa.Integer(), nullable=False, server_default="0"),
-        "thumbnail_data": sa.Column("thumbnail_data", sa.LargeBinary(), nullable=True),
+        "thumbnail_data": sa.Column(
+            "thumbnail_data", sa.LargeBinary().with_variant(mysql.LONGBLOB(), "mysql"), nullable=True
+        ),
         "thumbnail_content_type": sa.Column(
             "thumbnail_content_type", sa.String(length=100), nullable=True
         ),

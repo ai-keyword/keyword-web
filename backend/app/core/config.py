@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     frontend_origin: str = "http://localhost:3000"
     secret_key: str = "dev-secret-key-change-me-in-production" 
     seed_data_path: Path = Path("data/prompts.mock.json")
+    TURNSTILE_SECRET_KEY: str
 
     # 이메일 인증 관련 설정 추가
     mail_username: str

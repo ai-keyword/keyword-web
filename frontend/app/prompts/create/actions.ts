@@ -15,7 +15,12 @@ export async function createPromptAction(formData: FormData) {
     const keyword = formData.get("keyword")?.toString() ?? "";
     const content = formData.get("content")?.toString() ?? "";
     const description = formData.get("description")?.toString() ?? "";
+    const captchaToken = formData.get("captcha_token")?.toString() ?? "";
     const thumbnail = formData.get("thumbnail") as File | null;
+
+    if (!captchaToken.trim()) {
+        throw new Error("CAPTCHA_REQUIRED");
+    }
 
     try {
         // 1. 검열 먼저 — 백엔드에 요청 보내기 전에 텍스트+이미지를 검사한다.
@@ -29,13 +34,7 @@ export async function createPromptAction(formData: FormData) {
             imageDataUrl,
         });
 
-        if (hidden) {
-            throw new Error(
-                "부적절한 콘텐츠가 감지되어 등록할 수 없습니다. 내용을 확인 후 다시 시도해주세요.",
-            );
-        }
-
-        // 2. 검열을 통과한 경우에만 실제로 백엔드에 등록 요청을 보낸다.
+        // 2. 검열 결과를 서버로 그대로 실어 보내서, 서버가 is_hide=true/false로 저장한다.
         const cookieStore = await cookies();
         const token = cookieStore.get("token")?.value;
 
@@ -47,6 +46,8 @@ export async function createPromptAction(formData: FormData) {
         backendFormData.set("type", type);
         backendFormData.set("keyword", keyword);
         backendFormData.set("content", content);
+        backendFormData.set("captcha_token", captchaToken);
+        backendFormData.set("is_hide", String(hidden));
         if (description) backendFormData.set("description", description);
         if (hasThumbnail) backendFormData.set("thumbnail", thumbnail);
 
@@ -77,10 +78,12 @@ export async function createPromptAction(formData: FormData) {
         if (error instanceof Error && error.message === "UNAUTHORIZED") {
             throw new Error("로그인이 필요합니다.");
         }
+        if (error instanceof Error && error.message === "CAPTCHA_REQUIRED") {
+            throw new Error("캡차 인증을 완료해주세요.");
+        }
         throw new Error(
             getErrorMessage(error, "등록에 실패했어요. 다시 시도해주세요."),
         );
     }
-
     redirect("/");
 }

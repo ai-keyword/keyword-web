@@ -18,6 +18,7 @@ export type PromptApi = {
     views: number;
     like_count?: number;
     is_liked?: boolean;
+    is_hide?: boolean;
     created_at: string;
     author: PromptAuthor | string;
 };
@@ -37,6 +38,7 @@ export type Prompt = {
     likeCount: number;
     isLiked: boolean;
     createdAt: string;
+    isHide?: boolean;
 };
 
 export type PromptListResponse = {
@@ -69,4 +71,5 @@ export type PromptCreateForm = {
     content: string;
     description: string;
     thumbnailFile: File | null;
+    captcha_token: string;
 };

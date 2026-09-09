@@ -53,6 +53,7 @@ export function mapPrompt(prompt: PromptApi): Prompt {
         likeCount: prompt.like_count ?? 0, // API(snake) -> UI(camel)
         createdAt: prompt.created_at, // UI 컨벤션에 맞춰 매핑
         isLiked: prompt.is_liked ?? false,
+        isHide: prompt.is_hide ?? false,
     };
 }
 

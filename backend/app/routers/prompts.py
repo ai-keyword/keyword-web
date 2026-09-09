@@ -55,6 +55,7 @@ async def create_prompt(
     ai_model: Optional[str] = Form(None),
     content: str = Form(...),
     description: Optional[str] = Form(None),
+    captcha_token: Optional[str] = Form(None),
     is_hide: bool = Form(False),
     thumbnail: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
@@ -68,6 +69,7 @@ async def create_prompt(
         "description": description,
         "author_id": current_user.id,
         "thumbnail": thumbnail,
+        "captcha_token": captcha_token,
         "is_hide": is_hide,
     }
 

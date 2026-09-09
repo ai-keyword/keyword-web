@@ -1,8 +1,10 @@
 from fastapi.testclient import TestClient
+from sqlalchemy.dialects import mysql
 
 from app.core.database import SessionLocal
 from app.core.security import create_access_token
 from app.main import app
+from app.models.prompt import Prompt
 from app.models.user import User
 
 
@@ -45,6 +47,11 @@ def test_rank_sort_uses_like_count_descending():
     assert [prompt["rank"] for prompt in prompts] == list(
         range(1, len(prompts) + 1),
     )
+
+
+def test_thumbnail_data_column_uses_mysql_longblob():
+    compiled = str(Prompt.__table__.c.thumbnail_data.type.compile(dialect=mysql.dialect()))
+    assert compiled == "LONGBLOB"
 
 
 def test_get_me_returns_user_profile():

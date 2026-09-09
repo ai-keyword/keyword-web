@@ -244,6 +244,8 @@ export function SignupForm({ signupAction }: SignupFormProps) {
                 }}
             />
 
+            <input type="hidden" name="captcha_token" value={captchaToken} />
+
             <button
                 type="submit"
                 disabled={loading || !isFormValid}

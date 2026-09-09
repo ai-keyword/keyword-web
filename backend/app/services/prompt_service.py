@@ -1,20 +1,24 @@
 import json
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
-from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.security import get_password_hash
 from app.models.keyword import Keyword
-from app.models.like import user_likes
 from app.models.prompt import Prompt
 from app.models.user import User
 from app.repositories import prompt_repository
 from app.schemas.prompt import PromptCreate
-from app.core.security import get_password_hash
+from app.core.security import verify_turnstile
 
 VALID_PROMPT_TYPES = {"image", "text"}
+
+
 async def create_prompt_with_file(db: Session, prompt_data: dict):
+    # 캡차 검증 먼저 — 실패하면 여기서 예외가 던져지고 아래 로직은 실행되지 않음
+    await verify_turnstile(prompt_data.get("captcha_token"))
+
     thumbnail = prompt_data.get("thumbnail")
     thumbnail_data = None
     thumbnail_content_type = None
@@ -23,6 +27,7 @@ async def create_prompt_with_file(db: Session, prompt_data: dict):
         thumbnail_data = await thumbnail.read()
         thumbnail_content_type = thumbnail.content_type
 
+    # is_hide는 프론트(Server Action)에서 OpenAI Moderation으로 이미 판정해서 보내주는 값
     is_hide = bool(prompt_data.get("is_hide", prompt_data.get("isHide", False)))
 
     db_prompt = Prompt(
@@ -98,6 +103,8 @@ def increment_views(db: Session, prompt_id: str):
 
 
 def create_prompt(db: Session, prompt: PromptCreate):
+    # 캡차/검열이 필요한 실제 등록 흐름은 create_prompt_with_file()이 담당합니다.
+    # 이 함수는 파일 업로드 없이 JSON으로 바로 만들 때 쓰는 경로라 그대로 둡니다.
     return prompt_repository.create_prompt(db, prompt)
 
 
@@ -120,6 +127,8 @@ def toggle_like(db: Session, prompt_id: str, user_id: int) -> tuple[Prompt | Non
     db.commit()
     db.refresh(prompt)
     return prompt, is_liked
+
+
 def get_trending_keywords(db: Session) -> list[str]:
     keywords = db.query(Keyword.name).limit(10).all()
     return [k[0] for k in keywords]

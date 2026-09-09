@@ -31,6 +31,12 @@ export function TextPromptCard({
         close,
     } = usePromptInteraction(prompt, displayKeyword);
 
+    const isHide = Boolean(prompt.isHide);
+    const maskedText = isHide ? "검열된 프롬프트입니다" : filledContent;
+    const maskedDescription = isHide
+        ? "검열된 프롬프트입니다"
+        : prompt.description;
+
     return (
         <>
             <div
@@ -47,17 +53,23 @@ export function TextPromptCard({
             >
                 <div className="space-y-5">
                     <div className="flex items-center justify-between gap-3">
-                        {!hideRank ? <RankBadge rank={prompt.rank} /> : null}
+                        {!hideRank && !isHide ? (
+                            <RankBadge rank={prompt.rank} />
+                        ) : null}
                         <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
-                            #{prompt.keyword}
+                            {isHide
+                                ? "검열된 프롬프트입니다"
+                                : `#${prompt.keyword}`}
                         </span>
                     </div>
-                    <p className="line-clamp-4 text-lg font-black leading-8 text-zinc-950">
-                        {filledContent}
+                    <p
+                        className={`line-clamp-4 text-lg font-black leading-8 ${isHide ? "blur-sm" : "text-zinc-950"}`}
+                    >
+                        {maskedText}
                     </p>
-                    {prompt.description ? (
+                    {maskedDescription ? (
                         <p className="line-clamp-3 text-sm font-semibold leading-6 text-zinc-500">
-                            {prompt.description}
+                            {maskedDescription}
                         </p>
                     ) : null}
                 </div>
@@ -86,11 +98,11 @@ export function TextPromptCard({
                 >
                     <div className="space-y-3">
                         <p className="rounded-lg bg-zinc-950 p-4 font-mono text-sm font-semibold leading-7 text-white">
-                            {filledContent}
+                            {maskedText}
                         </p>
-                        {prompt.description ? (
+                        {maskedDescription ? (
                             <p className="rounded-lg bg-zinc-50 p-4 text-sm font-semibold leading-7 text-zinc-600">
-                                {prompt.description}
+                                {maskedDescription}
                             </p>
                         ) : null}
                     </div>

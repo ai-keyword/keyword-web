@@ -9,6 +9,7 @@ from collections.abc import Sequence
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import mysql
 
 
 revision: str = "20260908_0002"
@@ -18,7 +19,10 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column("prompts", sa.Column("thumbnail_data", sa.LargeBinary(), nullable=True))
+    op.add_column(
+        "prompts",
+        sa.Column("thumbnail_data", sa.LargeBinary().with_variant(mysql.LONGBLOB(), "mysql"), nullable=True),
+    )
     op.add_column(
         "prompts",
         sa.Column("thumbnail_content_type", sa.String(length=100), nullable=True),

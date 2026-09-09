@@ -33,6 +33,10 @@ export function PromptDetailModal({
     onToggleLike,
     children,
 }: PromptDetailModalProps) {
+    const isHide = Boolean(prompt.isHide);
+    const hiddenPromptLabel = "검열된 프롬프트입니다";
+    const keywordTitle = isHide ? hiddenPromptLabel : `#${prompt.keyword}`;
+
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-5"
@@ -47,23 +51,29 @@ export function PromptDetailModal({
             >
                 <div className="mb-5 flex items-start justify-between gap-4">
                     <div className="">
-                        <RankBadge rank={prompt.rank} />
+                        {!isHide ? <RankBadge rank={prompt.rank} /> : null}
                         <h3
                             id={`${prompt.id}-title`}
                             className="mt-4 text-2xl font-black text-zinc-950"
                         >
-                            #{prompt.keyword}
+                            {keywordTitle}
                         </h3>
                     </div>
                     <CloseIconButton label="닫기" onClick={onClose} />
                 </div>
                 {children}
-                <div>
+                <div className="relative">
                     <img
                         src={image ?? undefined}
-                        alt="이미지를 불러올 수 없습니다."
-                        className="mt-4 w-full rounded-sm"
+                        className={`mt-4 w-full rounded-sm ${isHide ? "blur-2xl" : ""}`}
                     />
+                    {isHide ? (
+                        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-sm bg-black/30 backdrop-blur-sm">
+                            <span className="rounded-md bg-black/75 px-3 py-1.5 text-xs font-semibold text-white shadow-sm">
+                                {hiddenPromptLabel}
+                            </span>
+                        </div>
+                    ) : null}
                     <div className="mt-5 flex items-center justify-between">
                         <PromptAuthorRow
                             author={prompt.author}
