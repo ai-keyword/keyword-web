@@ -319,7 +319,7 @@ def get_me(
 # =========================================================
 # 13. prompt like
 # =========================================================
-d@app.post("/api/prompts/{prompt_id}/like")
+@app.post("/api/prompts/{prompt_id}/like")
 def toggle_prompt_like(
     prompt_id: str,
     db: Session = Depends(get_db),
