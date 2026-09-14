@@ -43,9 +43,6 @@ export function PromptCard({
         : thumbnailOverlay;
     const maskedPromptText = isHide ? "검열된 프롬프트입니다" : filledContent;
 
-    useEffect(() => {
-        console.log(isHide);
-    }, []);
     return (
         <>
             <div
