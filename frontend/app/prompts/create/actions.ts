@@ -81,6 +81,7 @@ export async function createPromptAction(formData: FormData) {
         if (error instanceof Error && error.message === "CAPTCHA_REQUIRED") {
             throw new Error("캡차 인증을 완료해주세요.");
         }
+        console.error("프롬프트 등록 중 실제 에러:", error);
         throw new Error(
             getErrorMessage(error, "등록에 실패했어요. 다시 시도해주세요."),
         );
