@@ -71,7 +71,7 @@ export function EmailVerifyInput({
     return (
         <div className="space-y-4">
             <div className="flex gap-2">
-                <div className="flex-1">
+                <div className="flex-1 flex items-center gap-2">
                     <FormField
                         id="email"
                         name="email"

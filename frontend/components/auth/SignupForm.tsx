@@ -7,8 +7,12 @@ import Link from "next/link";
 import { EmailVerifyInput } from "@/components/auth/EmailVerifyInput";
 import { FormField } from "@/components/ui/FormField";
 import { getErrorMessage } from "@/lib/errors";
-import { Turnstile } from "@marsidev/react-turnstile";
 import dynamic from "next/dynamic";
+
+const Turnstile = dynamic(
+    () => import("@marsidev/react-turnstile").then((mod) => mod.Turnstile),
+    { ssr: false },
+);
 
 type SignupFormProps = {
     signupAction: (formData: FormData) => Promise<void>;
@@ -41,11 +45,6 @@ export function SignupForm({ signupAction }: SignupFormProps) {
         isPasswordMatch &&
         email.includes("@") &&
         isVerified;
-
-    const Turnstile = dynamic(
-        () => import("@marsidev/react-turnstile").then((mod) => mod.Turnstile),
-        { ssr: false },
-    );
 
     async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();

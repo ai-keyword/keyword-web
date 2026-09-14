@@ -9,8 +9,12 @@ import { CompactField, CompactTextarea } from "@/components/ui/FormField";
 import { BackIconButton } from "@/components/ui/IconButton";
 import { PromptTypePicker } from "@/components/prompt/PromptTypePicker";
 import toast from "react-hot-toast";
-import { Turnstile } from "@marsidev/react-turnstile";
 import dynamic from "next/dynamic";
+
+const Turnstile = dynamic(
+    () => import("@marsidev/react-turnstile").then((mod) => mod.Turnstile),
+    { ssr: false },
+);
 
 const initialForm: PromptCreateForm = {
     keyword: "",
@@ -29,11 +33,6 @@ export function CreatePromptForm() {
     const [form, setForm] = useState<PromptCreateForm>(initialForm);
     const [error, setError] = useState<string | null>(null);
     const [submitting, startTransition] = useTransition();
-
-    const Turnstile = dynamic(
-        () => import("@marsidev/react-turnstile").then((mod) => mod.Turnstile),
-        { ssr: false },
-    );
 
     function handleSelectType(selected: PromptType) {
         setType(selected);
