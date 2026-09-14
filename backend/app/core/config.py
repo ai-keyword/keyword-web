@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     mail_server: str = "smtp.gmail.com"
     mail_starttls: bool = True
     mail_ssl_tls: bool = False
+    brevo_api_key: str
 
     # 전화번호 등 추가 정보 (선택 사항)
     support_phone: str = ""

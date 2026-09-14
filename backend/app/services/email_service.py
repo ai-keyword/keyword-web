@@ -1,27 +1,34 @@
-import smtplib
-from email.mime.text import MIMEText
+import httpx
 from fastapi import HTTPException
 from app.core.config import get_settings
 
 settings = get_settings()
 
 def send_email(to_email: str, code: str):
-    print(">>> 현재 적용된 메일 서버:", settings.mail_server)
-    print(">>> 현재 적용된 계정:", settings.mail_username)
-    print(">>> 비밀번호 존재 여부:", bool(settings.mail_password))
+    print(">>> Brevo API 발신자:", settings.mail_from or settings.mail_username)
+
+    url = "https://api.brevo.com/v3/smtp/email"
+    headers = {
+        "api-key": settings.brevo_api_key,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    payload = {
+        "sender": {"email": settings.mail_from or settings.mail_username, "name": "#키워드"},
+        "to": [{"email": to_email}],
+        "subject": "#키워드 이메일 인증번호",
+        "textContent": f"인증번호는 [{code}] 입니다.",
+    }
+
     try:
-        # TLS(587) 연결
-        smtp = smtplib.SMTP(settings.mail_server, settings.mail_port)
-        smtp.starttls()
-        smtp.login(settings.mail_username, settings.mail_password)
-        
-        msg = MIMEText(f"인증번호는 [{code}] 입니다.")
-        msg['Subject'] = "#키워드 이메일 인증번호"
-        msg['From'] = settings.mail_from or settings.mail_username
-        msg['To'] = to_email
-        
-        smtp.sendmail(settings.mail_username, to_email, msg.as_string())
-        smtp.quit()
+        response = httpx.post(url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+    except httpx.HTTPStatusError as e:
+        print("이메일 전송 에러 상세:", e.response.text)
+        raise HTTPException(
+            status_code=500,
+            detail=f"메일 발송 실패: {e.response.text}",
+        )
     except Exception as e:
         print("이메일 전송 에러 상세:", e)
         raise HTTPException(status_code=500, detail=f"메일 발송 실패: {str(e)}")
