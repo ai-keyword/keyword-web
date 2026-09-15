@@ -30,7 +30,7 @@ export async function createPromptAction(formData: FormData) {
             : undefined;
 
         const hidden = await isHide({
-            text: `${content} ${description}`.trim(),
+            text: `${keyword} ${content} ${description}`.trim(),
             imageDataUrl,
         });
 
@@ -86,5 +86,5 @@ export async function createPromptAction(formData: FormData) {
             getErrorMessage(error, "등록에 실패했어요. 다시 시도해주세요."),
         );
     }
-    redirect("/");
+    // redirect("/");
 }

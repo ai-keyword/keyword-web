@@ -24,6 +24,7 @@ SessionLocal = sessionmaker(
     autoflush=False,
     autocommit=False,
 )
+
 if getattr(settings, "debug", False):
 
     @event.listens_for(engine, "before_cursor_execute")
